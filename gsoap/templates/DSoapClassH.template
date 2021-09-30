@@ -1,0 +1,24 @@
+#ifndef <classNamespace>H
+#define <classNamespace>H
+
+#include "soap<serviceNamespace>Proxy.h"
+
+class <classNamespace><functionName> {
+
+    public:
+        // Convert data names in uman-readable names
+        typedef _ns1__<reqNamespace> DQueryData;
+        typedef std::vector<ns1__<resNamespace>ResponseStructure *> DQueryRetItems;
+        
+        soap_status Call(DQueryData &Data, DQueryRetItems &RetItems);
+        bool IsReady(DQueryData &Data);
+        std::string GetLastErrorText(void);
+
+    private:
+        // GSoap generated client proxy
+        <serviceNamespace>Proxy Client;
+        // GSoap generated response container
+        typedef _ns1__<resNamespace>Response DQueryResp;
+};
+
+#endif

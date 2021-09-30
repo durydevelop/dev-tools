@@ -1,0 +1,30 @@
+#include "<className>.h"
+#include "<serviceNamespace>.nsmap"
+
+soap_status <classNamespace><functionName>::Call(DQueryData &Data, DQueryRetItems &RetItems)
+{
+    DQueryResp QueryResp;
+    soap_status ret=Client.<reqNamespace>(&Data,QueryResp);
+    if (QueryResp.Records) {
+        RetItems=QueryResp.Records->item;
+    }
+
+    return(ret);
+}
+
+bool <classNamespace><functionName>::IsReady(DQueryData &Data)
+{
+    DQueryRetItems Items;
+
+    soap_status ret=Call(Data,Items);
+    if (ret != 0) {
+        return false;
+    }
+    return true;
+}
+
+std::string <classNamespace><functionName>::GetLastErrorText(void)
+{
+    std::string s(*soap_faultstring(Client.soap));
+    return s;
+}
