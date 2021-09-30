@@ -5,7 +5,7 @@ DEV_TOOLS="dev-tools"
 # TODO:
 # _Add dev-tools/qt to PATH
 # _Add dev-tools/gsoap to PATH
-# _set DDEV_GSOAP_TEMPLATES to env
+# _Set DDEV_GSOAP_TEMPLATES to env
 
 # How to use:
 # ~$ mkdir Dev
@@ -187,7 +187,7 @@ echo -n "Checking for PATH "
 if [[ -d $DEV_TOOLS_PATH ]]; then
     ret=$(echo $PATH | grep $DEV_TOOLS_PATH)
     if [[ $ret == "" ]]; then
-        echo -e "\e[1;41mMISS\e[0m"
+        echo -e "\e[1;41m$DEV_TOOLS_PATH is not set\e[0m"
         # Update .bashrc
         update_path ~/.bashrc $DEV_TOOLS_PATH
         update_path ~/.zshrc $DEV_TOOLS_PATH
