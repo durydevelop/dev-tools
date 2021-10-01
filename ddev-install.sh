@@ -1,11 +1,7 @@
 #! /bin/bash
-Version=1.0.1
+Version=1.0.2
 DEV_TOOLS="dev-tools"
-
-# TODO:
-# _Add dev-tools/qt to PATH
-# _Add dev-tools/gsoap to PATH
-# _Set DDEV_GSOAP_TEMPLATES to env
+GITLAB_ACCESS_TOKEN="read-only:XRQgs6iGq8TQ6xvoDmDk"
 
 # How to use:
 # ~$ mkdir Dev
@@ -33,8 +29,6 @@ DEV_TOOLS="dev-tools"
 #     |    |src\
 #     |    
 #     |dev-tools <git@gitlab.com:durydevelop/dev-tools.git>
-
-gitlab_access_token="read-only:XRQgs6iGq8TQ6xvoDmDk"
 
 # Create $1 folder if does not exists
 function create_if_not_exists() {
@@ -66,15 +60,15 @@ function clone_if_not_exists() {
     fi
 }
 
-# Update PATH environment
+# Write text line in a file: if does not exist, add it
 # $1    ->  shell configuration file update (~/.bashrc, ~/.zshrc, ecc)
 # $2    ->  path to add
-function update_path() {
+function write_line_in_file_if_not_exists() {
     if [[ -f $1 ]]; then
-        ret=$(grep -xF "export PATH=\"$2:\$PATH\"" $1 || echo "export PATH=\"$2:\$PATH\"" >> $1)
-        if [[ $ret == "" ]]; then
-            echo -e "\e[33m\"$2\" PATH has been added to $1\e[0m"
-        fi
+        ret=$(grep -xF "$2" $1 || echo "$2" >> $1)
+        #if [[ $ret == "" ]]; then
+        #    echo -e "\e[33m\"$2\" PATH has been added to $1\e[0m"
+        #fi
     fi
 }
 
@@ -132,7 +126,7 @@ DEV_TOOLS_PATH="$(pwd)/$DEV_TOOLS"
 
 # dev-tools
 if [[ $1 == "-https" ]]; then
-    clone_if_not_exists dev-tools https://"$gitlab_access_token@"gitlab.com/durydevelop/dev-tools.git
+    clone_if_not_exists dev-tools https://"$GITLAB_ACCESS_TOKEN@"gitlab.com/durydevelop/dev-tools.git
 else
     clone_if_not_exists dev-tools git@gitlab.com:durydevelop/dev-tools.git
 fi
@@ -159,7 +153,7 @@ create_if_not_exists "_todo"
 
 # libdpp
 if [[ $1 == "-https" ]]; then
-    clone_if_not_exists libdpp https://"$gitlab_access_token@"gitlab.com/durydevelop/cpp/lib/libdpp.git
+    clone_if_not_exists libdpp https://"$GITLAB_ACCESS_TOKEN@"gitlab.com/durydevelop/cpp/lib/libdpp.git
 else
     clone_if_not_exists libdpp git@gitlab.com:durydevelop/cpp/lib/libdpp.git
 fi
@@ -168,11 +162,11 @@ fi
 create_if_not_exists "mcu"
 cd mcu
 if [[ $1 == "-https" ]]; then
-    clone_if_not_exists ddigitalio https://"$gitlab_access_token@"gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git
-    clone_if_not_exists dmcomm https://"$gitlab_access_token@"gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git
-    clone_if_not_exists dservo https://"$gitlab_access_token@"gitlab.com:durydevelop/cpp/lib/mcu/dservo.git
-    clone_if_not_exists dmenu https://"$gitlab_access_token@"gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git
-    clone_if_not_exists ddcmotorwheels https://"$gitlab_access_token@"gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git
+    clone_if_not_exists ddigitalio https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git
+    clone_if_not_exists dmcomm https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git
+    clone_if_not_exists dservo https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dservo.git
+    clone_if_not_exists dmenu https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git
+    clone_if_not_exists ddcmotorwheels https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git
 else
     clone_if_not_exists ddigitalio git@gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git
     clone_if_not_exists dmcomm git@gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git
@@ -182,16 +176,29 @@ else
 fi
 
 # Chech for PATH environment
-echo -n "Checking for PATH "
-# Add ~/Dev/dev-tools to PATH if needed
+echo -n "Checking for PATH: "
+# Update environments
 if [[ -d $DEV_TOOLS_PATH ]]; then
-    ret=$(echo $PATH | grep $DEV_TOOLS_PATH)
-    if [[ $ret == "" ]]; then
-        echo -e "\e[1;41m$DEV_TOOLS_PATH is not set\e[0m"
-        # Update .bashrc
-        update_path ~/.bashrc $DEV_TOOLS_PATH
-        update_path ~/.zshrc $DEV_TOOLS_PATH
-        echo -e "\e[33mPATH env is not loaded, please run \"source ~/.$(basename $SHELL)rc\" command or close/re-open shell to reload PATH environment\e[0m"
+    if [[ $(echo $PATH | grep "$DEV_TOOLS_PATH/qt") == "" ]]; then
+        NEW_ADD="$DEV_TOOLS_PATH/qt:"
+        write_line_in_file_if_not_exists ~/.bashrc "export PATH=$NEW_ADD\$PATH"
+        write_line_in_file_if_not_exists ~/.zshrc "export PATH=$NEW_ADD\$PATH"
+    fi
+    if [[ $(echo $PATH | grep "$DEV_TOOLS_PATH/gsoap") == "" ]]; then
+        NEW_ADD="$DEV_TOOLS_PATH/gsoap:"
+        write_line_in_file_if_not_exists ~/.bashrc "export PATH=$NEW_ADD\$PATH"
+        write_line_in_file_if_not_exists ~/.zshrc "export PATH=$NEW_ADD\$PATH"
+    fi
+        
+    if [[ $(printenv DDEV_GSOAP_TEMPLATES) == "" ]]; then
+        # Set env DDEV_GSOAP_TEMPLATES=$DEV_TOOLS_PATH/gsoap/templates"
+        NEW_ADD="export DDEV_GSOAP_TEMPLATES=$DEV_TOOLS_PATH/gsoap/templates"
+        write_line_in_file_if_not_exists ~/.bashrc "$NEW_ADD"
+        write_line_in_file_if_not_exists ~/.zshrc "$NEW_ADD"
+    fi
+    
+    if [[ $NEW_ADD != "" ]]; then
+        echo -e "\e[1;41mshell environments has been updated, please run \"source ~/.$(basename $SHELL)rc\" command or close/re-open shell to apply changes\e[0m"
     else
         echo -e "\e[32mOK\e[0m"
     fi
