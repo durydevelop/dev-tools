@@ -1,6 +1,9 @@
 #include "<className>.h"
 #include "<serviceNamespace>.nsmap"
 
+// class generated from wsdl source:
+// <wsdlUrl>
+
 soap_status <classNamespace><functionName>::Call(DQueryData &Data, DQueryRetItems &RetItems)
 {
     DQueryResp QueryResp;
