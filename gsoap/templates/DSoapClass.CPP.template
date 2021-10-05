@@ -7,7 +7,7 @@
 soap_status <classNamespace><functionName>::Call(DQueryData &Data, DQueryRetItems &RetItems)
 {
     DQueryResp QueryResp;
-    soap_status ret=Client.<reqNamespace>(&Data,QueryResp);
+    soap_status ret=Client.<requestName>(&Data,QueryResp);
     if (QueryResp.Records) {
         RetItems=QueryResp.Records->item;
     }

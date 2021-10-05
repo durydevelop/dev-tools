@@ -1,13 +1,13 @@
 #include "DSoapAHIInfoSedi_Query.h"
-#include "zpcu_USCOREtest_USCOREfascia_USCOREdelayWSPortBinding.nsmap"
+#include "zpcu_qinfosedi_fascia_delay_wsWSPortBinding.nsmap"
 
 // class generated from wsdl source:
-// http://192.168.1.224:8180/ahi_test/servlet/SQLDataProviderServer/zpcu_test_fascia_delay?wsdl
+// http://192.168.1.224:8080/ahi/servlet/SQLDataProviderServer/zpcu-qinfosedi-fascia-delay-ws?wsdl
 
 soap_status DSoapAHIInfoSedi_Query::Call(DQueryData &Data, DQueryRetItems &RetItems)
 {
     DQueryResp QueryResp;
-    soap_status ret=Client.zpcu_USCOREtest_USCOREfascia_USCOREdelay_USCOREQuery(&Data,QueryResp);
+    soap_status ret=Client.zpcu_qinfosedi_fascia_delay_ws_USCOREQuery(&Data,QueryResp);
     if (QueryResp.Records) {
         RetItems=QueryResp.Records->item;
     }

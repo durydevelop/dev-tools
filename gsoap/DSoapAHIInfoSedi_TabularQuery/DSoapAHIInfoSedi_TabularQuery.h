@@ -1,14 +1,14 @@
 #ifndef DSoapAHIInfoSediH
 #define DSoapAHIInfoSediH
 
-#include "soapzpcu_USCOREtest_USCOREfascia_USCOREdelayWSPortBindingProxy.h"
+#include "soapzpcu_qinfosedi_fascia_delay_wsWSPortBindingProxy.h"
 
 class DSoapAHIInfoSedi_TabularQuery {
 
     public:
         // Convert data names in uman-readable names
-        typedef _ns1__zpcu_USCOREtest_USCOREfascia_USCOREdelay_USCORETabularQuery DQueryData;
-        typedef std::vector<ns1__zpcu_USCOREtest_USCOREfascia_USCOREdelay_USCORETabularQueryResponseStructure *> DQueryRetItems;
+        typedef _ns1__zpcu_qinfosedi_fascia_delay_ws_USCORETabularQuery DQueryData;
+        typedef std::vector<ns1__zpcu_qinfosedi_fascia_delay_ws_USCORETabularQueryResponseStructure *> DQueryRetItems;
         
         soap_status Call(DQueryData &Data, DQueryRetItems &RetItems);
         bool IsReady(DQueryData &Data);
@@ -16,9 +16,9 @@ class DSoapAHIInfoSedi_TabularQuery {
 
     private:
         // GSoap generated client proxy
-        zpcu_USCOREtest_USCOREfascia_USCOREdelayWSPortBindingProxy Client;
+        zpcu_qinfosedi_fascia_delay_wsWSPortBindingProxy Client;
         // GSoap generated response container
-        typedef _ns1__zpcu_USCOREtest_USCOREfascia_USCOREdelay_USCORETabularQueryResponse DQueryResp;
+        typedef _ns1__zpcu_qinfosedi_fascia_delay_ws_USCORETabularQueryResponse DQueryResp;
 };
 
 #endif
