@@ -5,8 +5,9 @@
 Version=1.0.4
 GITLAB_ACCESS_TOKEN="read-only:XRQgs6iGq8TQ6xvoDmDk"
 ENV_DDEV_GSOAP_TEMPLATES="DDEV_GSOAP_TEMPLATES"
-ENV_DDEV_ROOT="DDEV_ROOT"
-ENV_DDEV_TOOLS_PATH="DDEV_TOOLS_PATH"
+ENV_DDEV_ROOT_PATH="DDEV_ROOT"
+ENV_DDEV_TOOLS_PATH="DDEV_TOOLS"
+DEFAULT_DDEV_ROOT_PATH=$HOME/Dev
 
 # How to use:
 # ~$ mkdir Dev
@@ -39,8 +40,12 @@ ENV_DDEV_TOOLS_PATH="DDEV_TOOLS_PATH"
 function create_if_not_exists() {
     echo -n -e "Checking for \e[33m$1\e[0m folder "
     if [[ ! -d "$1" ]]; then
-        echo -e "\e[33mcreate\e[0m"
-        mkdir $1
+        mkdir -p $1
+        if [[ ! -d "$1" ]]; then
+            echo -e "\e[31mCan not create...stopping\e[0m"
+            exit
+        fi
+        echo -e "\e[32mCREATED\e[0m"
     else
         echo -e "\e[32mOK\e[0m"
     fi
@@ -104,33 +109,54 @@ else
     echo -e "\e[32m OK\e[0m"
 fi
 
-# Check for ddev environments
-DDEV_ROOT=$(printenv $ENV_DDEV_ROOT)
-DDEV_TOOLS_PATH=$(printenv $ENV_DDEV_TOOLS_PATH)
+# Default DDEV_ROOT_PATH
+DDEV_ROOT_PATH=$DEFAULT_DDEV_ROOT_PATH
 
-if [[ $DDEV_ROOT == "" ]]; then
-	echo "$ENV_DDEV_ROOT is not set, \"Dev\" folder will be created (if not exists) and assumed as $ENV_DDEV_ROOT environment."
-	read -p "Continue (Y/n)" -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Nn]$ ]]; then
-        exit 1
+# parse command line
+POSITIONAL=()
+    while [[ $# -gt 0 ]]; do
+        key="$1"
+
+        case $key in
+            -p|--path)
+                echo -e "Forcing $ENV_DDEV_ROOT_PATH to \e[33m$2\e[0m"
+                DDEV_ROOT_PATH="$2"
+                shift # past argument
+                shift # past value
+                ;;
+            -h|--help)
+                print-usage
+                exit
+            ;;
+            *)    # unknown option
+            POSITIONAL+=("$1") # save it in an array for later
+            shift # past argument
+            ;;
+        esac
+    done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+# Check for DDEV_ROOT_PATH
+if [[ $(printenv $ENV_DDEV_ROOT_PATH) != $DDEV_ROOT_PATH ]]; then
+    if [[ ! -d $DDEV_ROOT_PATH ]]; then
+        echo -n "Create $DDEV_ROOT_PATH use it as $ENV_DDEV_ROOT_PATH environment."
+        read -p "(Y/n)" -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Nn]$ ]]; then
+            exit 1
+        fi
     fi
-	create_if_not_exists "Dev"
-    cd Dev
-	DDEV_ROOT=$(pwd)
-	write_line_in_file_if_not_exists ~/.bashrc "export $ENV_DDEV_ROOT=$DDEV_ROOT"
-	write_line_in_file_if_not_exists ~/.zshrc "export $ENV_DDEV_ROOT=$DDEV_ROOT"
-else
-	# DDEV_ROOT found
-	cd $DDEV_ROOT
+	create_if_not_exists $DDEV_ROOT_PATH
 fi
-echo -e  "DDEV_ROOT is \e[33m$DDEV_ROOT\e[0m"
 
-if [[ $DDEV_TOOLS_PATH == "" ]]; then
-	DDEV_TOOLS_PATH=$DDEV_ROOT/dev-tools
-	write_line_in_file_if_not_exists ~/.bashrc "export $ENV_DDEV_TOOLS_PATH=$DDEV_TOOLS_PATH"
-	write_line_in_file_if_not_exists ~/.zshrc "export $ENV_DDEV_TOOLS_PATH=$DDEV_TOOLS_PATH"
+if [[ ! -d $DDEV_ROOT_PATH ]]; then
+    echo -e "\e[33mSomething was wrong, folder $DEV_ROOT does not exist.\e[0m"
+    exit
 fi
+cd $DDEV_ROOT_PATH
+echo -e  "DDEV_ROOT is \e[33m$DDEV_ROOT_PATH\e[0m"
+
+DDEV_TOOLS_PATH=$DDEV_ROOT_PATH/dev-tools
 
 ## Start creating folders
 # dev-tools
@@ -141,81 +167,56 @@ else
 fi
 
 # cpp
-create_if_not_exists "$DDEV_ROOT/cpp"
+create_if_not_exists "$DDEV_ROOT_PATH/cpp"
 
 # cpp/helpers_cmake
-clone_if_not_exists "$DDEV_ROOT/cpp/helpers_cmake" git@gitlab.com:durydevelop/cpp/helpers_cmake.git
+clone_if_not_exists "$DDEV_ROOT_PATH/cpp/helpers_cmake" git@gitlab.com:durydevelop/cpp/helpers_cmake.git
 
 # cpp/lib
-create_if_not_exists "$DDEV_ROOT/cpp/lib"
+create_if_not_exists "$DDEV_ROOT_PATH/cpp/lib"
 
 # cpp/src
-create_if_not_exists "$DDEV_ROOT/cpp/src"
+create_if_not_exists "$DDEV_ROOT_PATH/cpp/src"
 
 # cpp/_temp
-create_if_not_exists "$DDEV_ROOT/cpp/_temp"
+create_if_not_exists "$DDEV_ROOT_PATH/cpp/_temp"
 
 # cpp/_todo
-create_if_not_exists "$DDEV_ROOT/cpp/_todo"
+create_if_not_exists "$DDEV_ROOT_PATH/cpp/_todo"
 
 # cpp/lib/libdpp
 if [[ $1 == "-https" ]]; then
-    clone_if_not_exists "$DDEV_ROOT/cpp/lib/libdpp" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com/durydevelop/cpp/lib/libdpp.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/libdpp" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com/durydevelop/cpp/lib/libdpp.git
 else
-    clone_if_not_exists "$DDEV_ROOT/cpp/lib/libdpp" git@gitlab.com:durydevelop/cpp/lib/libdpp.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/libdpp" git@gitlab.com:durydevelop/cpp/lib/libdpp.git
 fi
 
 # cpp/lib/mcu
-create_if_not_exists "$DDEV_ROOT/cpp/lib/mcu"
+create_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu"
 if [[ $1 == "-https" ]]; then
-    clone_if_not_exists "$DDEV_ROOT/cpp/lib/mcu/ddigitalio" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git
-    clone_if_not_exists "$DDEV_ROOT/cpp/lib/mcu/dmcomm" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git
-    clone_if_not_exists "$DDEV_ROOT/cpp/lib/mcu/dservo" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dservo.git
-    clone_if_not_exists "$DDEV_ROOT/cpp/lib/mcu/dmenu" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git
-    clone_if_not_exists "$DDEV_ROOT/cpp/lib/mcu/ddcmotorwheels" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/ddigitalio" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/dmcomm" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/dservo" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dservo.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/dmenu" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/ddcmotorwheels" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git
 else
-    clone_if_not_exists "$DDEV_ROOT/cpp/lib/mcu/ddigitalio" git@gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git
-    clone_if_not_exists "$DDEV_ROOT/cpp/lib/mcu/dmcomm" git@gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git
-    clone_if_not_exists "$DDEV_ROOT/cpp/lib/mcu/dservo" git@gitlab.com:durydevelop/cpp/lib/mcu/dservo.git
-    clone_if_not_exists "$DDEV_ROOT/cpp/lib/mcu/dmenu" git@gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git
-    clone_if_not_exists "$DDEV_ROOT/cpp/lib/mcu/ddcmotorwheels" git@gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/ddigitalio" git@gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/dmcomm" git@gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/dservo" git@gitlab.com:durydevelop/cpp/lib/mcu/dservo.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/dmenu" git@gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/ddcmotorwheels" git@gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git
 fi
 
-# Chech for environments
-echo -n "Checking for environments: "
-if [[ -d $DDEV_TOOLS_PATH ]]; then
-	if [[ $(echo $PATH | grep "$DEV_TOOLS_PATH:") == "" ]]; then
-        NEW_ADD="$DEV_TOOLS_PATH:"
-        write_line_in_file_if_not_exists ~/.bashrc "export PATH=$NEW_ADD\$PATH"
-        write_line_in_file_if_not_exists ~/.zshrc "export PATH=$NEW_ADD\$PATH"
-    fi
-    if [[ $(echo $PATH | grep "$DEV_TOOLS_PATH/qt") == "" ]]; then
-        NEW_ADD="$DEV_TOOLS_PATH/qt:"
-        write_line_in_file_if_not_exists ~/.bashrc "export PATH=$NEW_ADD\$PATH"
-        write_line_in_file_if_not_exists ~/.zshrc "export PATH=$NEW_ADD\$PATH"
-    fi
-    if [[ $(echo $PATH | grep "$DEV_TOOLS_PATH/gsoap") == "" ]]; then
-        NEW_ADD="$DEV_TOOLS_PATH/gsoap:"
-        write_line_in_file_if_not_exists ~/.bashrc "export PATH=$NEW_ADD\$PATH"
-        write_line_in_file_if_not_exists ~/.zshrc "export PATH=$NEW_ADD\$PATH"
-    fi
-    if [[ $(printenv $ENV_DDEV_GSOAP_TEMPLATES) == "" ]]; then
-        # Set env $ENV_DDEV_GSOAP_TEMPLATES=$DEV_TOOLS_PATH/gsoap/templates"
-        NEW_ADD="export $ENV_DDEV_GSOAP_TEMPLATES=$DEV_TOOLS_PATH/gsoap/templates"
-        write_line_in_file_if_not_exists ~/.bashrc "$NEW_ADD"
-        write_line_in_file_if_not_exists ~/.zshrc "$NEW_ADD"
-    fi
-    
-    if [[ $NEW_ADD != "" ]]; then
-        echo -e "\e[1;41mshell environments has been updated, please run \"source ~/.$(basename $SHELL)rc\" command or close/re-open shell to apply changes\e[0m"
-    else
-        echo -e "\e[32mOK\e[0m"
-    fi
-else
-    echo -e "\e[33mMay be something wrong, folder $DEV_TOOLS_PATH does not exist.\e[0m"
-fi
+# Update environments
+echo "Update environments..."
 
-echo ""
-if [[ error_msg != "" ]]; then
-    echo -e "\e[1;41m$error_msg\e[0m"
-fi
+# Create ddev-env
+create_if_not_exists $HOME/.ddev
+echo "export PATH=$DDEV_TOOLS_PATH:\$PATH 
+export $ENV_DDEV_ROOT_PATH=$DDEV_ROOT_PATH
+export $ENV_DDEV_TOOLS_PATH=$DDEV_TOOLS_PATH
+export $ENV_DDEV_GSOAP_TEMPLATES=$DDEV_TOOLS_PATH/gsoap/templates" > $HOME/.ddev/ddev-env
+# Update .profile
+write_line_in_file_if_not_exists $HOME/.profile '. "$HOME/.ddev/ddev-env"'
+# Reload .profile
+. $HOME/.profile
