@@ -109,9 +109,6 @@ else
     echo -e "\e[32m OK\e[0m"
 fi
 
-# Default DDEV_ROOT_PATH
-DDEV_ROOT_PATH=$DEFAULT_DDEV_ROOT_PATH
-
 # parse command line
 POSITIONAL=()
     while [[ $# -gt 0 ]]; do
@@ -136,22 +133,48 @@ POSITIONAL=()
     done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-# Check for DDEV_ROOT_PATH
-if [[ $(printenv $ENV_DDEV_ROOT_PATH) != $DDEV_ROOT_PATH ]]; then
-    if [[ ! -d $DDEV_ROOT_PATH ]]; then
-        echo -n "Create $DDEV_ROOT_PATH use it as $ENV_DDEV_ROOT_PATH environment."
-        read -p "(Y/n)" -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Nn]$ ]]; then
-            exit 1
-        fi
-    fi
+CURR_DDEV_ROOT_PATH=$(printenv $ENV_DDEV_ROOT_PATH)
+if [[ $CURR_DDEV_ROOT_PATH == "" ]]; then
+	## No DDEV_ROOT found
+	# set default
+	if [[ $DDEV_ROOT_PATH == "" ]]; then
+		# No manual entered root path
+		echo "Seems DDEV-TOOLS are not installed, use $DEFAULT_DDEV_ROOT_PATH as $ENV_DDEV_ROOT_PATH environment?"
+		DDEV_ROOT_PATH=$DEFAULT_DDEV_ROOT_PATH
+	else
+		# Manual entered root path
+		DDEV_ROOT_PATH=$(realpath $DDEV_ROOT_PATH)
+		echo "Use $DDEV_ROOT_PATH as $ENV_DDEV_ROOT_PATH environment?"
+	fi
+	read -p "(Y/n)" -n 1 -r
+	echo
+	if [[ $REPLY =~ ^[Nn]$ ]]; then
+		exit 1
+	fi
 	create_if_not_exists $DDEV_ROOT_PATH
+else
+	if [[ $DDEV_ROOT_PATH != "" ]]; then
+		# Manual entered root path
+		DDEV_ROOT_PATH=$(realpath $DDEV_ROOT_PATH)
+		if [[ $DDEV_ROOT_PATH != $CURR_DDEV_ROOT_PATH ]]; then
+			# Different from now
+			echo -n "Current $ENV_DDEV_ROOT_PATH env is \e[33m$CURR_DDEV_ROOT_PATH\e[0m, you entered \e[33m$DDEV_ROOT_PATH\e[0m "
+			echo -n "use it as new $ENV_DDEV_ROOT_PATH environment."
+			read -p "(Y/n)" -n 1 -r
+			echo
+			if [[ $REPLY =~ ^[Nn]$ ]]; then
+				exit 1
+			fi
+			create_if_not_exists $DDEV_ROOT_PATH
+		fi
+	else
+		DDEV_ROOT_PATH=$CURR_DDEV_ROOT_PATH
+	fi
 fi
 
 if [[ ! -d $DDEV_ROOT_PATH ]]; then
     echo -e "\e[33mSomething was wrong, folder $DEV_ROOT does not exist.\e[0m"
-    exit
+    exit 2
 fi
 cd $DDEV_ROOT_PATH
 echo -e  "DDEV_ROOT is \e[33m$DDEV_ROOT_PATH\e[0m"
@@ -220,3 +243,6 @@ export $ENV_DDEV_GSOAP_TEMPLATES=$DDEV_TOOLS_PATH/gsoap/templates" > $HOME/.ddev
 write_line_in_file_if_not_exists $HOME/.profile '. "$HOME/.ddev/ddev-env"'
 # Reload .profile
 . $HOME/.profile
+if [[ $(printenv $ENV_DDEV_ROOT_PATH) == "" ]]; then
+	echo -e "\e[33mYou need to restart your shell. Close and reopen it or type \"source ~/.profile\" command.\e[0m"
+fi
