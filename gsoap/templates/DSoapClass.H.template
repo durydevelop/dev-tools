@@ -7,8 +7,8 @@ class <classNamespace><functionName> {
 
     public:
         // Convert data names in uman-readable names
-        typedef _ns1__<reqNamespace> DQueryData;
-        typedef std::vector<ns1__<resNamespace>ResponseStructure *> DQueryRetItems;
+        typedef _ns1__<requestName> DQueryData;
+        typedef std::vector<ns1__<responseName>ResponseStructure *> DQueryRetItems;
         
         soap_status Call(DQueryData &Data, DQueryRetItems &RetItems);
         bool IsReady(DQueryData &Data);
@@ -18,7 +18,7 @@ class <classNamespace><functionName> {
         // GSoap generated client proxy
         <serviceNamespace>Proxy Client;
         // GSoap generated response container
-        typedef _ns1__<resNamespace>Response DQueryResp;
+        typedef _ns1__<responseName>Response DQueryResp;
 };
 
 #endif

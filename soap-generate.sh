@@ -1,34 +1,35 @@
 #! /bin/bash
 
-Version=1.0.1
-DSOAP_H_TEMPLATE=DSoapClassH.template
-DSOAP_CPP_TEMPLATE=DSoapClassCPP.template
-CMAKELISTS_TXT_TEMPLATE=CMakeListsTXT.template
+Version=1.0.2
+DSOAP_H_TEMPLATE=DSoapClass.H.template
+DSOAP_CPP_TEMPLATE=DSoapClass.CPP.template
+CMAKELISTS_TXT_TEMPLATE=CMakeLists.TXT.template
 
 print-usage() {
-    echo "This script create a \"ready (and easy) to use\" cpp class from a wsdl (using gsoap tools)."
-    echo "Usage: $(basename $0) <class name> <wsdl infile or url> [-o <path>] [-h]"
+    echo "This script create a \"ready (and easy) to use\" cpp class from a wsdl file or url (using gsoap tools)."
+    echo "Usage: $(basename $0) <class name> <wsdl infile or url> [-h] [-o <path>] [-n]"
     echo "<class name> is the name of the cpp class to create."
     echo "<wsdl infile or url> is wsdl file or url to read."
     echo "Options:"
     echo -e "-h, --help\t\tPrint this help."
     echo -e "-o, --output <path>\tUse <path> as output folder."
+    echo -e "-n, --no-temp-clean Do not clean temp folder."
 }
 
 function generate-class() {
     echo "Generating..."
+    # .req.xml file names are composed as:
+    # serviceNamespace + . + $wsdlName + method
+    
     # Cerca i files con estensione .req.xml
     # estrae il basename senza estensione
-    # estrae la stringa da dopo WSPortBinding. fino a .req.xml
-    # aggiungo USCORE dopo ogni '_' ?
+    # estrae la stringa tra $serviceNamespace.$wsdlName_ e .req.xml (la funzione esposta)
     reqNamespaceArray=()
     while IFS= read -r -d '' file; do
         # basename without extension
         name=$(basename ${file#*/} .req.xml)
-        # retain the part after the last dot
-        name=${name##*.}
-        # aggiungo USCORE dopo ogni '_'
-        name=${name//_/_USCORE}
+        # retain the part after "$serviceNamespace.$wsdlName"
+        name=${name##*$serviceNamespace.$wsdlName}
         # add to array
         reqNamespaceArray+=($name)
     done < <(find $tempFolder -maxdepth 1 -name '*.req.xml' -type f -print0)
@@ -40,15 +41,13 @@ function generate-class() {
 
     # Cerca i files con estensione .res.xml
     # estrae il basename senza estensione
-    # dopo WSPortBinding. fino a .req.xml
+    # estrae la stringa tra $serviceNamespace.$wsdlName_ e .req.xml (la funzione esposta)
     resNamespaceArray=()
     while IFS= read -r -d '' file; do
         # basename without extension
         name=$(basename ${file#*/} .req.xml)
-        # retain the part after the last dot
-        name=${name##*.}
-        # aggiungo USCORE dopo ogni '_'
-        name=${name//_/_USCORE}
+        # retain the part after "$serviceNamespace.$wsdlName"
+        name=${name##*$serviceNamespace.$wsdlName}
         # add to array
         resNamespaceArray+=($name)
     done < <(find $tempFolder -maxdepth 1 -name '*.req.xml' -type f -print0)
@@ -60,28 +59,36 @@ function generate-class() {
     
     # Create all
     for (( n=0; n < ${#reqNamespaceArray[*]}; n++)); do
-        # retain the part after $wsdlName
-        function=${reqNamespaceArray[n]##*$wsdlName}
-        # cutoff USCORE in composite classname
-        functionName=${function//USCORE/}
+        functionName=${reqNamespaceArray[n]};
+        requestName=${serviceNamespace%WSPortBinding*}${reqNamespaceArray[n]//_/_USCORE}
+        responseName=${serviceNamespace%WSPortBinding*}${resNamespaceArray[n]//_/_USCORE}
         className=$classNamespace$functionName
         #echo -e "Class \e[33m$className\e[33m\e[0m"
         if [[ ! -d $className ]]; then
             echo -e "Creating folder \e[33m$outputFolder/$className\e[33m\e[0m"
             create_if_not_exists $outputFolder/$className
         fi
-        #To replace all occurrences, use ${parameter//pattern/string}:
+        echo -e "In folder \e[33m$outputFolder/$className\e[0m:"
+        
+        # Replace tags and save $className.h
         echo -e "Generating \e[33m$className.h\e[0m"
-        sed "s/<classNamespace>/$classNamespace/g; s/<className>/$className/g; s/<functionName>/$functionName/g; s/<serviceNamespace>/$serviceNamespace/g; s/<reqNamespace>/${reqNamespaceArray[n]}/g; s/<resNamespace>/${resNamespaceArray[n]}/g" $templatesFolder/$DSOAP_H_TEMPLATE > $outputFolder/$className/$className.h
+        sed "s/<classNamespace>/$classNamespace/g; s/<className>/$className/g; s/<functionName>/$functionName/g; s/<serviceNamespace>/$serviceNamespace/g; s/<requestName>/$requestName/g; s/<responseName>/$responseName/g" $templatesFolder/$DSOAP_H_TEMPLATE > $outputFolder/$className/$className.h
+        
+        # Replace tags and save $className.cpp
         echo -e "Generating \e[33m$className.cpp\e[0m"
-        sed "s/<classNamespace>/$classNamespace/g; s/<className>/$className/g; s/<functionName>/$functionName/g; s/<serviceNamespace>/$serviceNamespace/g; s/<reqNamespace>/${reqNamespaceArray[n]}/g; s/<resNamespace>/${resNamespaceArray[n]}/g;" $templatesFolder/$DSOAP_CPP_TEMPLATE > $outputFolder/$className/$className.cpp
-		# Replace also <wsdlUrl> with wsdl source $wsdlUrl
+        sed "s/<classNamespace>/$classNamespace/g; s/<className>/$className/g; s/<functionName>/$functionName/g; s/<serviceNamespace>/$serviceNamespace/g; s/<requestName>/$requestName/g; s/<responseName>/$responseName/g;" $templatesFolder/$DSOAP_CPP_TEMPLATE > $outputFolder/$className/$className.cpp
+        
+		# Replace also <wsdlUrl> with $wsdlUrl in $className.h
 		gawk -i inplace -v wsdlUrl=$wsdlUrl '{gsub(/<wsdlUrl>/,wsdlUrl)}1' $outputFolder/$className/$className.cpp
-		echo -e "Generating \e[33m$"CMakeLists.txt"\e[0m"
-        sed "s/<classNamespace>/$classNamespace/g; s/<functionName>/$functionName/g; s/<serviceNamespace>/$serviceNamespace/g; s/<reqNamespace>/${reqNamespaceArray[n]}/g; s/<resNamespace>/${resNamespaceArray[n]}/g" $templatesFolder/$CMAKELISTS_TXT_TEMPLATE > $outputFolder/$className/CMakeLists.txt
-        echo -e "Adding lib files to \e[33m$className\e[0m folder"
+		
+		# Replace tags and save CMakeLists..txt
+		echo -e "Generating \e[33m"CMakeLists.txt"\e[0m"
+        sed "s/<classNamespace>/$classNamespace/g; s/<functionName>/$functionName/g; s/<serviceNamespace>/$serviceNamespace/g; s/<requestName>/$requestName/g; s/<responseName>/$responseName/g" $templatesFolder/$CMAKELISTS_TXT_TEMPLATE > $outputFolder/$className/CMakeLists.txt
+        
+        # Copy files to folder
+        echo -e "Adding lib files"
         cp $tempFolder/{soapC.cpp,soapH.h,soapStub.h,$serviceNamespace.nsmap,soap"$serviceNamespace"Proxy.cpp,soap"$serviceNamespace"Proxy.h} $outputFolder/$className
-		#cp $tempFolder/$templatesFolder/stdsoap2.cpp $templatesFolder/stdsoap2.h $outputFolder/$className
+		cp $templatesFolder/$gsoapVersion/stdsoap2.cpp $templatesFolder/$gsoapVersion/stdsoap2.h $outputFolder/$className
     done
 }
 
@@ -93,15 +100,12 @@ function create_if_not_exists() {
 }
 
 #################################### entry-point ####################################
+cleanTemp=true
 # Parse command line
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do
     key="$1"
     case $key in
-        -h|--help)
-            print-usage
-            exit
-        ;;
         -o|--output)
                 outputFolder="$2"
                 shift # past argument
@@ -112,6 +116,14 @@ while [[ $# -gt 0 ]]; do
                 shift # past argument
                 shift # past value
                 ;;
+        -n|--no-temp-clean)
+            cleanTemp=false
+            shift # past argument
+        ;;
+        -h|--help)
+            print-usage
+            exit
+        ;;
         *)    # unknown option
         POSITIONAL+=("$1") # save it in an array for later
         shift # past argument
@@ -119,7 +131,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
-        
+
 if [[ $# < 2 ]]; then
     echo -e "\e[1;41mError: missing arguments...\e[0m"
     print-usage
@@ -161,7 +173,7 @@ if ! command -v soapcpp2 &> /dev/null; then
 	exit
 fi
 echo -e "Executing \e[33msoapcpp2\e[0m"
-soapcpp2 -j -CL -l $tempFolder/wsdl.h -d $tempFolder 2>&1 | grep -i "success\|error"
+soapcpp2 -j -CL $tempFolder/wsdl.h -d $tempFolder 2>&1 | grep -i "success\|error"
 
 if [[ ! -f $tempFolder/wsdl.h ]]; then
 	echo -e "\e[1;41mError: $tempFolder/wsdl.h has not been created\e[0m"
@@ -179,8 +191,11 @@ fi
 serviceNamespace=$(basename ${res[0]} .nsmap)
 wsdlName=$(basename $2 "?wsdl")
 wsdlName=${wsdlName//_/_USCORE}
+gsoapVersion=$(grep '#if GSOAP_VERSION != ' $tempFolder/soapStub.h)
+gsoapVersion=${gsoapVersion##*'#if GSOAP_VERSION != '}
 
 echo "GSoap generated namespaces:"
+echo -e "gsoapVersion=\e[33m$gsoapVersion\e[0m"
 echo -e "wsdlUrl=\e[33m$wsdlUrl\e[0m"
 echo -e "serviceNamespace=\e[33m$serviceNamespace\e[0m"
 echo -e "wsdlName=\e[33m$wsdlName\e[0m"
@@ -197,12 +212,10 @@ fi
 # Generate class files
 generate-class
 
-echo "Deleting temp files..."
-#rm $tempFolder/*.cpp
-#rm $tempFolder/*.h
-#rm $tempFolder/*.nsmap
-#rm $tempFolder/*.xml
-rm -rf $tempFolder
+if [[ $cleanTemp == true ]]; then
+    echo "Deleting all temp files..."
+    rm -rf $tempFolder
+fi
 
 echo -e "\e[32mDone\e[0m"
 echo -e "\e[32mYour classes are in $outputFolder\e[0m"
