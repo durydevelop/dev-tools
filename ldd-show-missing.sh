@@ -2,7 +2,7 @@
 
 if [ -z "$1" ]; then
 	echo "Missing filename"
-	echo "Usage: $0 filename [output filename]"
+	echo "Usage: $(basename $0) filename [output filename]"
 	exit
 fi
 readarray -t array <<< $(ldd $1 | grep "not found")
