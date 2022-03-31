@@ -82,32 +82,38 @@ function write_line_in_file_if_not_exists() {
     fi
 }
 
+# Install packet if not exists
+# $1 packet name
+function install_if_not_exists() {
+    echo -n -e "Checking for \e[33m$1\e[0m command"
+    if ! command -v git &> /dev/null; then
+	echo ""
+	echo -e "\e[33m$1 is not installed, wait for installing...\e[0m"
+	sudo apt-get install -y $1;
+	if [ $? -eq 0 ]; then
+	    echo -e "\e[32m$1 install done\e[0m"
+	else
+	    echo -e "\e[1;41m$1 install failed\e[0m"
+	    exit 1
+	fi
+	
+	# Check for missing dependencies
+	sudo apt-get install -y -f
+	if [ $? -eq 0 ]; then
+	    echo -e "\e[32mMissed dependency install complete\e[0m"
+	else
+	    echo -e "\e[1;41mMissed dependency install failed\e[0m"
+	exit 1
+	fi
+    else
+	echo -e "\e[32m OK\e[0m"
+    fi
+}
+
 #################################### entry-point ####################################
 echo "-- $(basename "$0") Ver. $Version --"
 
-# Check for git exists
-echo -n -e "Checking for \e[33mgit\e[0m command"
-if ! command -v git &> /dev/null; then
-    echo ""
-    echo -e "\e[33mGit is not installed, wait for installing...\e[0m"
-    sudo apt-get install -y git;
-    if [ $? -eq 0 ]; then
-        echo -e "\e[32mgit install done\e[0m"
-    else
-        echo -e "\e[1;41mgit install failed\e[0m"
-        exit 1
-    fi
-
-    sudo apt-get install -y -f
-    if [ $? -eq 0 ]; then
-        echo -e "\e[32mMissed dependency install complete\e[0m"
-    else
-        echo -e "\e[1;41mMissed dependency install failed\e[0m"
-    exit 1
-    fi
-else
-    echo -e "\e[32m OK\e[0m"
-fi
+install_if_not_exists(git)
 
 # parse command line
 POSITIONAL=()
