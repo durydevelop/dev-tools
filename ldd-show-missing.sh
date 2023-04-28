@@ -11,7 +11,7 @@ for (( n=0; n < ${#array[*]}; n++)); do
 	var=${array[n]%" => "*}
 	var="${var#"${var%%[![:space:]]*}"}"
 	echo -e "\e[33mMissing $var\e[0m"
-	if [ -z "$2" ]; then
-		echo "$var" >> $2
+	if [ ! -z "$2" ]; then
+			echo "$var" >> $2
 	fi
 done

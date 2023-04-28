@@ -1,0 +1,4 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\Qt6 Here\command]
+@="C:\\Windows\\System32\\cmd.exe /A /Q /K C:\\Qt\\6.2.4\\mingw_64\\bin\\qtenv2.bat"

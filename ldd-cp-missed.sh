@@ -7,5 +7,5 @@ for (( n=0; n < ${#array[*]}; n++)); do
 	missed=${array[n]##*" => "}
 	missed=${missed%" (0x"*}
 	echo -e "\e[33mCopy $missed\e[0m"
-	cp $missed ./
+	cp $missed ./$(basename "$0")
 done
