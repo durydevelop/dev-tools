@@ -2,7 +2,7 @@
 
 # TODO: Check environments using array
 
-Version=1.0.4
+Version=1.0.5
 GITLAB_ACCESS_TOKEN="read-only:XRQgs6iGq8TQ6xvoDmDk"
 ENV_DDEV_GSOAP_TEMPLATES="DDEV_GSOAP_TEMPLATES"
 ENV_DDEV_ROOT_PATH="DDEV_ROOT"
@@ -22,19 +22,31 @@ DEFAULT_DDEV_ROOT_PATH=$HOME/Dev
 #     |    |helpers_cmake\  <git@gitlab.com:durydevelop/cpp/helpers_cmake.git>
 #     |    |
 #     |    |lib\
-#     |    |    |_temp
-#     |    |    |_todo
-#     |    |    |libdpp <git@gitlab.com:durydevelop/cpp/lib/libdpp.git>
-#     |    |    |mcu\
+#     |    |    	 |libdpp <git@gitlab.com:durydevelop/cpp/lib/libdpp.git>
+#     |    |
+#     |    |lib-mcu\
+#     |    |         |arduino-lib-oled
+#     |    |         |ddcmotorwheels <git@gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git>
 #     |    |         |ddigitalio     <git@gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git>
 #     |    |         |dmcomm         <git@gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git>
-#     |    |         |dservo         <git@gitlab.com:durydevelop/cpp/lib/mcu/dservo.git>
 #     |    |         |dmenu          <git@gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git>
-#     |    |         |ddcmotorwheels <git@gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git>
+#     |    |         |dpplib-mcu
+#     |    |         |dservo         <git@gitlab.com:durydevelop/cpp/lib/mcu/dservo.git>
+#     |    |         |dstepper
 #     |    |
 #     |    |src\
+#     |    |
+#     |    |src-mcu\
 #     |    
 #     |dev-tools <git@gitlab.com:durydevelop/dev-tools.git>
+
+print-usage() {
+    echo "This script will install Dury Develop Framework."
+    echo "Usage: $(basename "$0") [-p <path>] [-h]"
+    echo "Options:"
+	echo -e "-p, --path <path>\tStart from <path> folder."
+    echo -e "-h, --help\t\tPrint this help."
+}
 
 # Create $1 folder if does not exists
 function create_if_not_exists() {
@@ -132,6 +144,9 @@ POSITIONAL=()
                 exit
             ;;
             *)    # unknown option
+				echo "Unkown option: $1"
+				print-usage
+				exit
             POSITIONAL+=("$1") # save it in an array for later
             shift # past argument
             ;;
@@ -139,6 +154,12 @@ POSITIONAL=()
     done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
+#Check for dependences
+install_if_not_exists(git)
+
+echo "-- $(basename "$0") Ver. $Version --"
+
+#Check folders structure
 CURR_DDEV_ROOT_PATH=$(printenv $ENV_DDEV_ROOT_PATH)
 if [[ $CURR_DDEV_ROOT_PATH == "" ]]; then
 	## No DDEV_ROOT found
@@ -159,12 +180,14 @@ if [[ $CURR_DDEV_ROOT_PATH == "" ]]; then
 	fi
 	create_if_not_exists $DDEV_ROOT_PATH
 else
+	echo "DDEV_ROOT_PATH=$DDEV_ROOT_PATH"
+	echo "CURR_DDEV_ROOT_PATH=$CURR_DDEV_ROOT_PATH"
 	if [[ $DDEV_ROOT_PATH != "" ]]; then
 		# Manual entered root path
 		DDEV_ROOT_PATH=$(realpath $DDEV_ROOT_PATH)
 		if [[ $DDEV_ROOT_PATH != $CURR_DDEV_ROOT_PATH ]]; then
 			# Different from now
-			echo -n "Current $ENV_DDEV_ROOT_PATH env is \e[33m$CURR_DDEV_ROOT_PATH\e[0m, you entered \e[33m$DDEV_ROOT_PATH\e[0m "
+			echo -e -n "Current $ENV_DDEV_ROOT_PATH env is \e[33m$CURR_DDEV_ROOT_PATH\e[0m, you entered \e[33m$DDEV_ROOT_PATH\e[0m "
 			echo -n "use it as new $ENV_DDEV_ROOT_PATH environment."
 			read -p "(Y/n)" -n 1 -r
 			echo
@@ -172,14 +195,17 @@ else
 				exit 1
 			fi
 			create_if_not_exists $DDEV_ROOT_PATH
+			CURR_DDEV_ROOT_PATH=$DDEV_ROOT_PATH
 		fi
 	else
 		DDEV_ROOT_PATH=$CURR_DDEV_ROOT_PATH
 	fi
 fi
+echo "DDEV_ROOT_PATH=$DDEV_ROOT_PATH"
+echo "CURR_DDEV_ROOT_PATH=$CURR_DDEV_ROOT_PATH"
 
 if [[ ! -d $DDEV_ROOT_PATH ]]; then
-    echo -e "\e[33mSomething was wrong, folder $DEV_ROOT does not exist.\e[0m"
+    echo -e "\e[33mSomething was wrong, folder <$DDEV_ROOT_PATH> does not exist. Try to use -p option to set new path.\e[0m"
     exit 2
 fi
 cd $DDEV_ROOT_PATH
@@ -187,19 +213,13 @@ echo -e  "DDEV_ROOT is \e[33m$DDEV_ROOT_PATH\e[0m"
 
 DDEV_TOOLS_PATH=$DDEV_ROOT_PATH/dev-tools
 
-## Start creating folders
-# dev-tools
-if [[ $1 == "-https" ]]; then
-    clone_if_not_exists $DDEV_TOOLS_PATH https://"$GITLAB_ACCESS_TOKEN@"gitlab.com/durydevelop/dev-tools.git
-else
-    clone_if_not_exists $DDEV_TOOLS_PATH git@gitlab.com:durydevelop/dev-tools.git
-fi
-
+## Create folder structure
+echo "Create folder structure..."
 # cpp
 create_if_not_exists "$DDEV_ROOT_PATH/cpp"
 
 # cpp/helpers_cmake
-clone_if_not_exists "$DDEV_ROOT_PATH/cpp/helpers_cmake" git@gitlab.com:durydevelop/cpp/helpers_cmake.git
+create_if_not_exists "$DDEV_ROOT_PATH/cpp/helpers_cmake"
 
 # cpp/lib
 create_if_not_exists "$DDEV_ROOT_PATH/cpp/lib"
@@ -207,33 +227,45 @@ create_if_not_exists "$DDEV_ROOT_PATH/cpp/lib"
 # cpp/src
 create_if_not_exists "$DDEV_ROOT_PATH/cpp/src"
 
-# cpp/_temp
-create_if_not_exists "$DDEV_ROOT_PATH/cpp/_temp"
+# cpp/lib-mcu
+create_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu"
 
-# cpp/_todo
-create_if_not_exists "$DDEV_ROOT_PATH/cpp/_todo"
+# cpp/src-mcu
+create_if_not_exists "$DDEV_ROOT_PATH/cpp/src-mcu"
 
-# cpp/lib/libdpp
+## Clone repo
+echo "Clone repositories"
+
+# Clone dev-tools
+if [[ $1 == "-https" ]]; then
+    clone_if_not_exists $DDEV_TOOLS_PATH https://"$GITLAB_ACCESS_TOKEN@"gitlab.com/durydevelop/dev-tools.git
+else
+    clone_if_not_exists $DDEV_TOOLS_PATH git@gitlab.com:durydevelop/dev-tools.git
+fi
+
+# Clone helpers_cmake
+clone_if_not_exists "$DDEV_ROOT_PATH/cpp/helpers_cmake" git@gitlab.com:durydevelop/cpp/helpers_cmake.git
+
+# Clone libdpp
 if [[ $1 == "-https" ]]; then
     clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/libdpp" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com/durydevelop/cpp/lib/libdpp.git
 else
     clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/libdpp" git@gitlab.com:durydevelop/cpp/lib/libdpp.git
 fi
 
-# cpp/lib/mcu
-create_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu"
+# Clone mcu libs
 if [[ $1 == "-https" ]]; then
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/ddigitalio" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/dmcomm" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/dservo" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dservo.git
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/dmenu" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/ddcmotorwheels" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/ddigitalio" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dmcomm" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dservo" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dservo.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dmenu" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/ddcmotorwheels" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git
 else
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/ddigitalio" git@gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/dmcomm" git@gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/dservo" git@gitlab.com:durydevelop/cpp/lib/mcu/dservo.git
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/dmenu" git@gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/mcu/ddcmotorwheels" git@gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/ddigitalio" git@gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dmcomm" git@gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dservo" git@gitlab.com:durydevelop/cpp/lib/mcu/dservo.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dmenu" git@gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/ddcmotorwheels" git@gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git
 fi
 
 # Update environments
@@ -248,7 +280,13 @@ export $ENV_DDEV_GSOAP_TEMPLATES=$DDEV_TOOLS_PATH/gsoap/templates" > $HOME/.ddev
 # Update .profile
 write_line_in_file_if_not_exists $HOME/.profile '. "$HOME/.ddev/ddev-env"'
 # Reload .profile
-. $HOME/.profile
-if [[ $(printenv $ENV_DDEV_ROOT_PATH) == "" ]]; then
-	echo -e "\e[33mYou need to restart your shell. Close and reopen it or type \"source ~/.profile\" command.\e[0m"
+echo "ENV_DDEV_ROOT_PATH=$(printenv $ENV_DDEV_ROOT_PATH)"
+echo "CURR_DDEV_ROOT_PATH=$CURR_DDEV_ROOT_PATH"
+#. $HOME/.profile
+source ~/.profile
+echo "poi"
+echo "ENV_DDEV_ROOT_PATH=$(printenv $ENV_DDEV_ROOT_PATH)"
+echo "CURR_DDEV_ROOT_PATH=$CURR_DDEV_ROOT_PATH"
+if [[ $(printenv $ENV_DDEV_ROOT_PATH) != $CURR_DDEV_ROOT_PATH ]]; then
+	echo -e "\e[38;5;9mYou need to restart your shell. Close and reopen it or type \"source ~/.profile\" command.\e[0m"
 fi
