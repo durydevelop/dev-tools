@@ -152,7 +152,11 @@ POSITIONAL=()
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
 #Check for dependences
-install_if_not_exists(git)
+install_if_not_exists git
+install_if_not_exists cmake
+install_if_not_exists qbase5-dev
+install_if_not_exists libboost-dev
+install_if_not_exists libopencv-dev
 
 echo "-- $(basename "$0") Ver. $Version --"
 
