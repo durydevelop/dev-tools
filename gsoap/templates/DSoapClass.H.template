@@ -9,9 +9,11 @@ class <classNamespace><functionName> {
         // Convert data names in uman-readable names
         typedef _ns1__<requestName> DQueryData;
         typedef std::vector<ns1__<responseName>ResponseStructure *> DQueryRetItems;
+		const std::string WsdlUrl="<wsdlUrl>";
         
         soap_status Call(DQueryData &Data, DQueryRetItems &RetItems);
         bool IsReady(DQueryData &Data);
+        std::string GetWsdlUrl(void);
         std::string GetLastErrorText(void);
 
     private:
