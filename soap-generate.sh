@@ -4,11 +4,11 @@ Version=1.0.4
 DSOAP_H_TEMPLATE=DSoapClass.H.template
 DSOAP_CPP_TEMPLATE=DSoapClass.CPP.template
 CMAKELISTS_TXT_TEMPLATE=CMakeLists.TXT.template
-USCORE_REPL="_x005f"
-#USCORE_REPL="_USCORE"
+USCORE_FROM="_x005f"
+USCORE_REPL="_"
 
 #TODO:
-# replace $USCORE_REPL in all
+# OK_replace $USCORE_FROM with $USCORE_REPL everywhere
 
 print-usage() {
     echo "This script create a \"ready (and easy) to use\" cpp class from a wsdl file or url (using gsoap tools)."
@@ -65,12 +65,12 @@ function generate-class() {
     # Create all
     for (( n=0; n < ${#reqNamespaceArray[*]}; n++)); do
         functionName=${reqNamespaceArray[n]};
-		echo -e "functionName \e[31m$functionName\e[33m\e[0m"
+		#echo -e "functionName \e[31m$functionName\e[33m\e[0m"
         requestName=${serviceNamespace%WSPortBinding*}${functionName//_/$USCORE_REPL}
-		echo -e "requestName \e[31m$requestName\e[33m\e[0m"
+		#echo -e "requestName \e[31m$requestName\e[33m\e[0m"
         responseName=${serviceNamespace%WSPortBinding*}${functionName//_/$USCORE_REPL}
 		className=$classNamespace$functionName
-		echo -e "className \e[31m$className\e[33m\e[0m"
+		#echo -e "className \e[31m$className\e[33m\e[0m"
         
         if [[ ! -d $className ]]; then
             echo -e "Creating folder \e[33m$outputFolder/$className\e[33m\e[0m"
@@ -97,7 +97,7 @@ function generate-class() {
         sed "s/<classNamespace>/$classNamespace/g; s/<functionName>/$functionName/g; s/<serviceNamespace>/$serviceNamespace/g; s/<requestName>/$requestName/g; s/<responseName>/$responseName/g" $templatesFolder/$CMAKELISTS_TXT_TEMPLATE > $outputFolder/$className/CMakeLists.txt
         
         # Copy files to folder
-        echo -e "Adding lib files"
+        echo -e "Adding lib files..."
         cp $tempFolder/{soapC.cpp,soapH.h,soapStub.h,$serviceNamespace.nsmap,soap"$serviceNamespace"Proxy.cpp,soap"$serviceNamespace"Proxy.h} $outputFolder/$className
 		cp $templatesFolder/$gsoapVersion/stdsoap2.cpp $templatesFolder/$gsoapVersion/stdsoap2.h $outputFolder/$className
     done
@@ -108,6 +108,25 @@ function create_if_not_exists() {
     if [[ ! -d "$1" ]]; then
         mkdir -p $1
     fi
+}
+
+# Replace pattern in file
+# $1    ->  Source filename
+# $2    ->  Source pattern
+# $3    ->  Replace pattern
+# [$4]  ->  Destination filename (if omitted, source file is updated)
+function replace-in-file() {
+	if [[ ! -f "$1" ]]; then
+		echo -e "\e[1;41m$1 does not exist\e[0m"
+		exit 1
+	fi
+	
+	if [[ -z $4 ]]; then
+		# 4th argument not found, update source file
+		sed -i "s/$2/$3/g" $1
+	else
+		sed "s/$2/$3/g" $1 > $4
+	fi
 }
 
 #################################### entry-point ####################################
@@ -195,7 +214,7 @@ classNamespace=$1
 wsdlUrl=$2
 # Read only first occurence found
 readarray -t res <<< $(find $tempFolder -maxdepth 1 -type f -name *.nsmap)
-if [[ ${res[0]} == "" ]]; then
+if [[ ${res[0]} == "" ]]; then -n
 	echo -e "\e[1;41mError: $tempFolder/wsdl.h has not been created\e[0m"
 	exit
 fi
@@ -213,6 +232,18 @@ echo -e "wsdlName=\e[33m$wsdlName\e[0m"
 echo -e "classNamespace=\e[33m$classNamespace\e[0m"
 echo -e "tempFolder=\e[33m$tempFolder\e[0m"
 echo -e "outputFolder=\e[33m$outputFolder\e[0m"
+echo -e "analizing files content..."
+
+# Change $USCORE_FROM with $USCORE_REPL in all files and names
+filesListArray=()
+while IFS= read -r -d '' filename; do
+	replace-in-file $filename $USCORE_FROM $USCORE_REPL
+	mv $filename ${filename//$USCORE_FROM/$USCORE_REPL}
+	#echo -e "filename=\e[33m$filename\e[0m"
+done < <(find $tempFolder -maxdepth 1 -name "*.*" -type f -print0)
+serviceNamespace=${serviceNamespace//$USCORE_FROM/$USCORE_REPL}
+echo -e "FINAL serviceNamespace=\e[33m$serviceNamespace\e[0m"
+
 read -p "Continue (Y/n)" -n 1 -r
 echo
 if [[ $REPLY =~ ^[Nn]$ ]]; then
