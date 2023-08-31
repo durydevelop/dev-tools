@@ -2,7 +2,7 @@
 
 # TODO: Check environments using array
 
-Version=1.0.6
+Version=1.0.5
 GITLAB_ACCESS_TOKEN="read-only:XRQgs6iGq8TQ6xvoDmDk"
 ENV_DDEV_GSOAP_TEMPLATES="DDEV_GSOAP_TEMPLATES"
 ENV_DDEV_ROOT_PATH="DDEV_ROOT"
@@ -22,10 +22,17 @@ DEFAULT_DDEV_ROOT_PATH=$HOME/Dev
 #     |    |helpers_cmake\  <git@gitlab.com:durydevelop/cpp/helpers_cmake.git>
 #     |    |
 #     |    |lib\
-#     |    |    	 |dpptools <git@gitlab.com:durydevelop/cpp/lib/dpptools.git>
+#     |    |    	 |libdpp <git@gitlab.com:durydevelop/cpp/lib/libdpp.git>
 #     |    |
 #     |    |lib-mcu\
-#     |    |         |dpptools-mcu <git@gitlab.com:durydevelop/cpp/lib-mcu/dpptools-mcu.git>
+#     |    |         |arduino-lib-oled
+#     |    |         |ddcmotorwheels <git@gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git>
+#     |    |         |ddigitalio     <git@gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git>
+#     |    |         |dmcomm         <git@gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git>
+#     |    |         |dmenu          <git@gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git>
+#     |    |         |dpplib-mcu
+#     |    |         |dservo         <git@gitlab.com:durydevelop/cpp/lib/mcu/dservo.git>
+#     |    |         |dstepper
 #     |    |
 #     |    |src\
 #     |    |
@@ -88,13 +95,14 @@ function write_line_in_file_if_not_exists() {
 }
 
 # Install pkg if does not exists
-# $1    ->  pkg name (e.g. smb)
-# [$2]    ->  command used to check pkg (e.g. smbpasswd)
+# $1	->  pkg name (e.g. smb)
+# [$2]	->  command used to check pkg (e.g. smbpasswd)
 function install_if_not_exists() {
 	local MISSING=0
 	if [[ -z $2 ]]; then
 		# 2nd argument not found use dpkg
-		RET=$(dpkg -l | grep $1)
+		# search for "$1 " or "$1:" (for lib like libboost-dev:amd64)
+		RET=$(dpkg -l | grep "$1 \|$1:")
 		#echo "RET=$RET"
 		if [[ $RET == "" ]];then
 		# pkg not found
@@ -109,7 +117,12 @@ function install_if_not_exists() {
 	
 	if [[ $MISSING == 1 ]]; then	
 		echo ""
-		echo -e "\e[33m$1 is not installed, wait for installing...\e[0m"
+		echo -e -n "\e[33m$1 is not installed, install it? \e[0m"
+		read -p "(Y/n)" -n 1 -r
+			echo
+			if [[ $REPLY =~ ^[Nn]$ ]]; then
+				return
+			fi
 		sudo apt-get install -y $1;
 		if [ $? -eq 0 ]; then
 			echo -e "\e[32m$1 install done\e[0m"
@@ -156,9 +169,10 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 
 #Check for dependences
 install_if_not_exists git
-install_if_not_exists build-essential
 install_if_not_exists cmake
+install_if_not_exists qbase5-dev
 install_if_not_exists libboost-dev
+install_if_not_exists libopencv-dev
 
 echo "-- $(basename "$0") Ver. $Version --"
 
@@ -221,28 +235,22 @@ echo "Create folder structure..."
 # cpp
 create_if_not_exists "$DDEV_ROOT_PATH/cpp"
 
+# cpp/helpers_cmake
+create_if_not_exists "$DDEV_ROOT_PATH/cpp/helpers_cmake"
+
 # cpp/lib
 create_if_not_exists "$DDEV_ROOT_PATH/cpp/lib"
-
-# cpp/lib-mcu
-create_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu"
 
 # cpp/src
 create_if_not_exists "$DDEV_ROOT_PATH/cpp/src"
 
+# cpp/lib-mcu
+create_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu"
+
 # cpp/src-mcu
 create_if_not_exists "$DDEV_ROOT_PATH/cpp/src-mcu"
 
-# cpp/src-mcu/rpi
-create_if_not_exists "$DDEV_ROOT_PATH/cpp/src-mcu/rpi"
-
-# cpp/src-mcu/arduino
-create_if_not_exists "$DDEV_ROOT_PATH/cpp/src-mcu/arduino"
-
-# cpp/src-mcu/attiny85
-create_if_not_exists "$DDEV_ROOT_PATH/cpp/src-mcu/attiny85"
-
-## Clone repos
+## Clone repo
 echo "Clone repositories"
 
 # Clone dev-tools
@@ -255,18 +263,26 @@ fi
 # Clone helpers_cmake
 clone_if_not_exists "$DDEV_ROOT_PATH/cpp/helpers_cmake" git@gitlab.com:durydevelop/cpp/helpers_cmake.git
 
-# Clone dpptools
+# Clone libdpp
 if [[ $1 == "-https" ]]; then
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dpptools" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/dpptools.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/libdpp" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com/durydevelop/cpp/lib/libdpp.git
 else
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dpptools" git@gitlab.com:durydevelop/cpp/lib/dpptools.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/libdpp" git@gitlab.com:durydevelop/cpp/lib/libdpp.git
 fi
 
-# Clone dpptools-mcu
+# Clone mcu libs
 if [[ $1 == "-https" ]]; then
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dpptools-mcu" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib-mcu/dpptools-mcu.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/ddigitalio" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dmcomm" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dservo" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dservo.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dmenu" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/ddcmotorwheels" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git
 else
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dpptools-mcu" git@gitlab.com:durydevelop/cpp/lib-mcu/dpptools-mcu.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/ddigitalio" git@gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dmcomm" git@gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dservo" git@gitlab.com:durydevelop/cpp/lib/mcu/dservo.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dmenu" git@gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/ddcmotorwheels" git@gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git
 fi
 
 # Update environments
@@ -280,20 +296,17 @@ export $ENV_DDEV_TOOLS_PATH=$DDEV_TOOLS_PATH
 export $ENV_DDEV_GSOAP_TEMPLATES=$DDEV_TOOLS_PATH/gsoap/templates" > $HOME/.ddev/ddev-env
 # Update .profile
 write_line_in_file_if_not_exists $HOME/.profile '. "$HOME/.ddev/ddev-env"'
+if [[ -d ".zshrc" ]]; then
+	write_line_in_file_if_not_exists $HOME/.zprofile '. "$HOME/.ddev/ddev-env"'
+fi
 # Reload .profile
-echo "Try to reload .profile for shell"
-echo "Before reload:"
-echo -e "\e[33mENV_DDEV_ROOT_PATH=$(printenv $ENV_DDEV_ROOT_PATH)\e[0m"
-echo -e "\e[33mCURR_DDEV_ROOT_PATH=$CURR_DDEV_ROOT_PATH\e[0m"
+echo "ENV_DDEV_ROOT_PATH=$(printenv $ENV_DDEV_ROOT_PATH)"
+echo "CURR_DDEV_ROOT_PATH=$CURR_DDEV_ROOT_PATH"
 #. $HOME/.profile
 source ~/.profile
-echo "After reload:"
-echo -e "\e[33mENV_DDEV_ROOT_PATH=$(printenv $ENV_DDEV_ROOT_PATH)\e[0m"
-echo -e "\e[33mCURR_DDEV_ROOT_PATH=$CURR_DDEV_ROOT_PATH\e[0m"
+echo "poi"
+echo "ENV_DDEV_ROOT_PATH=$(printenv $ENV_DDEV_ROOT_PATH)"
+echo "CURR_DDEV_ROOT_PATH=$CURR_DDEV_ROOT_PATH"
 if [[ $(printenv $ENV_DDEV_ROOT_PATH) != $CURR_DDEV_ROOT_PATH ]]; then
-	echo -e "\e[38;5;9mYou need to restart your shell. Close and reopen it or type \"source ~/.profile\" command.\e[0m"
+	echo -e "\e[38;5;9mYou need to restart your shell. Close and reopen it or type \"source ~/.profile\" or \"source ~/.zprofile\" (if you use zsh).\e[0m"
 fi
-
-## optional
-#install_if_not_exists qbase5-dev
-#install_if_not_exists libopencv-dev
