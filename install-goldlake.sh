@@ -105,12 +105,21 @@ if [[ ! -d $EMSDK_ROOT ]]; then
 	clone_if_not_exists $EMSDK_ROOT https://github.com/emscripten-core/emsdk.git
 fi
 
-echo -e "\e[33mUpdate and activate emsdk\e[0m"
-EMSDK_QUIET=1
-cd $EMSDK_ROOT
-./emsdk install latest
-./emsdk activate latest --permanent &> /dev/null
-write_line_in_file_if_not_exists "$HOME/.profile" "EMSDK_QUIET=1 . $EMSDK_ROOT/emsdk_env.sh"
-if [[ $(printenv EMSDK) == "" ]]; then
-	echo -e "\e[38;5;9mYou need to restart your shell. Close and reopen it or type \"source ~/.profile\" command.\e[0m"
+if [[ ! -d $EMSDK_ROOT ]]; then
+	# Only if installed
+	echo -e "\e[33mUpdate and activate emsdk\e[0m"
+	EMSDK_QUIET=1
+	cd $EMSDK_ROOT
+	./emsdk install latest
+	./emsdk activate latest --permanent &> /dev/null
+	write_line_in_file_if_not_exists "$HOME/.profile" "EMSDK_QUIET=1 . $EMSDK_ROOT/emsdk_env.sh"
+	if [[ $(printenv EMSDK) == "" ]]; then
+		echo -e "\e[38;5;9mYou need to restart your shell. Close and reopen it or type \"source ~/.profile\" command.\e[0m"
+	fi
 fi
+install_if_not_exists mesa-common-dev
+install_if_not_exists libx11-dev
+install_if_not_exists libxrandr-dev
+install_if_not_exists libxinerama-dev
+install_if_not_exists libxcursor
+install_if_not_exists libxi-dev
