@@ -2,7 +2,7 @@
 
 # TODO: Check environments using array
 
-Version=1.0.5
+Version=1.0.6
 GITLAB_ACCESS_TOKEN="read-only:XRQgs6iGq8TQ6xvoDmDk"
 ENV_DDEV_GSOAP_TEMPLATES="DDEV_GSOAP_TEMPLATES"
 ENV_DDEV_ROOT_PATH="DDEV_ROOT"
@@ -115,26 +115,27 @@ function install_if_not_exists() {
 	    fi
 	fi
 	
-	if [[ $MISSING == 1 ]]; then	
+	if [[ $MISSING == 1 ]]; then
 		echo ""
 		echo -e -n "\e[33m$1 is not installed, install it? \e[0m"
 		read -p "(Y/n)" -n 1 -r
-			echo
-			if [[ $REPLY =~ ^[Nn]$ ]]; then
-				return
-			fi
+		echo
+		if [[ $REPLY =~ ^[Nn]$ ]]; then
+			return 1
+		fi
 		sudo apt-get install -y $1;
 		if [ $? -eq 0 ]; then
 			echo -e "\e[32m$1 install done\e[0m"
 		else
-			echo -e "\e[1;41m$1 install failed\e[0m"
-		exit 1
+			return 0
 		fi
 
 		sudo apt-get install -y -f
 		if [ ! $? -eq 0 ]; then
 			echo -e "\e[1;41mMissed dependency install failed\e[0m"
+			return 0
 		fi
+		return 1
 	fi
 }
 
@@ -170,9 +171,48 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 #Check for dependences
 install_if_not_exists git
 install_if_not_exists build-essential
-install_if_not_exists qbase5-dev
 install_if_not_exists libboost-dev
 install_if_not_exists libopencv-dev
+if [[ $(apt-cache search --names-only qt6-base-dev) != "" ]]; then
+	#echo -e "\e[32m$1install qt6-base-dev\e[0m"
+	install_if_not_exists qt6-base-dev
+else
+	if [[ $(apt-cache search --names-only qtbase5-dev) != "" ]]; then
+		#echo -e "\e[32m$1install done qtbase5-dev\e[0m"
+		install_if_not_exists qtbase5-dev
+	fi
+fi
+
+
+if [[ $() == 0 ]]; then
+	echo ""
+	echo -e -n "\e[1;41m$1 install failed, continue?\e[0m"
+	read -p "(Y/n)" -n 1 -r
+	echo
+	if [[ $REPLY =~ ^[Nn]$ ]]; then
+		exit 1
+	fi
+fi
+install_if_not_exists qt5-base-dev
+if [[  ]]; then
+	echo ""
+	echo -e -n "\e[1;41m$1 install failed, continue?\e[0m"
+	read -p "(Y/n)" -n 1 -r
+	echo
+	if [[ $REPLY =~ ^[Nn]$ ]]; then
+		exit 1
+	fi
+fi
+install_if_not_exists qbase5-dev
+if [[  ]]; then
+	echo ""
+	echo -e -n "\e[1;41m$1 install failed, continue?\e[0m"
+	read -p "(Y/n)" -n 1 -r
+	echo
+	if [[ $REPLY =~ ^[Nn]$ ]]; then
+		exit 1
+	fi
+fi
 
 echo "-- $(basename "$0") Ver. $Version --"
 
