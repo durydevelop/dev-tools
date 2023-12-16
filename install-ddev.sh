@@ -176,11 +176,9 @@ install_if_not_exists libopencv-dev
 if [[ $(apt-cache search --names-only qt6-base-dev) != "" ]]; then
 	#echo -e "\e[32m$1install qt6-base-dev\e[0m"
 	install_if_not_exists qt6-base-dev
-else
-	if [[ $(apt-cache search --names-only qtbase5-dev) != "" ]]; then
-		#echo -e "\e[32m$1install done qtbase5-dev\e[0m"
-		install_if_not_exists qtbase5-dev
-	fi
+elif [[ $(apt-cache search --names-only qtbase5-dev) != "" ]]; then
+	#echo -e "\e[32m$1install done qtbase5-dev\e[0m"
+	install_if_not_exists qtbase5-dev
 fi
 
 
@@ -336,19 +334,19 @@ export $ENV_DDEV_ROOT_PATH=$DDEV_ROOT_PATH
 export $ENV_DDEV_TOOLS_PATH=$DDEV_TOOLS_PATH
 export $ENV_DDEV_GSOAP_TEMPLATES=$DDEV_TOOLS_PATH/gsoap/templates
 " > $HOME/.ddev/ddev-env
-# Update .profile
-write_line_in_file_if_not_exists $HOME/.profile '. "$HOME/.ddev/ddev-env"'
-if [[ -d ".zshrc" ]]; then
-	write_line_in_file_if_not_exists $HOME/.zprofile '. "$HOME/.ddev/ddev-env"'
+
+# Update .shell file
+if [[ -d ".bashrc" ]]; then
+	write_line_in_file_if_not_exists $HOME/.bashrc '. "$HOME/.ddev/ddev-env"'
+	source ~/.bashrc
+elif [[ -d ".zshrc" ]]; then
+	write_line_in_file_if_not_exists $HOME/.zshrc '. "$HOME/.ddev/ddev-env"'
+	source ~/.zshrc
+else
+	write_line_in_file_if_not_exists $HOME/.profile '. "$HOME/.ddev/ddev-env"'
+	source ~/.profile
 fi
-# Reload .profile
-#echo "ENV_DDEV_ROOT_PATH=$(printenv $ENV_DDEV_ROOT_PATH)"
-#echo "CURR_DDEV_ROOT_PATH=$CURR_DDEV_ROOT_PATH"
-#. $HOME/.profile
-source ~/.profile
-#echo "poi"
-#echo "ENV_DDEV_ROOT_PATH=$(printenv $ENV_DDEV_ROOT_PATH)"
-#echo "CURR_DDEV_ROOT_PATH=$CURR_DDEV_ROOT_PATH"
+
 if [[ $(printenv $ENV_DDEV_ROOT_PATH) != $CURR_DDEV_ROOT_PATH ]]; then
 	echo -e "\e[38;5;9mYou need to restart your shell. Close and reopen it or type \"source ~/.profile\" or \"source ~/.zprofile\" (if you use zsh).\e[0m"
 fi
