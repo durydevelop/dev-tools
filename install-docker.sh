@@ -15,7 +15,7 @@ echo "now need to reboot"
 
 # sudo apt-get install docker-compose-plugin
 docker run hello-world
-sudo apt-get update && sudo apt-get upgrade docker
-apt-cache policy libseccomp2 # deve essere almeno 2.42
+# sudo apt-get update && sudo apt-get upgrade docker
+# apt-cache policy libseccomp2 # deve essere almeno 2.42
 
 #docker run -d --name="home-assistant" -e "TZ=Europe/Rome" -v "~/homeassistant:/config" -v "/run/dbus:/run/dbus:ro" --net=host --restart always ghcr.io/home-assistant/home-assistant:stable
