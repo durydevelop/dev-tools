@@ -1,44 +1,11 @@
 #! /bin/bash
 
-# TODO: Check environments using array
-
-Version=1.0.7
+Version=1.0.1
 GITLAB_ACCESS_TOKEN="read-only:XRQgs6iGq8TQ6xvoDmDk"
 ENV_DDEV_GSOAP_TEMPLATES="DDEV_GSOAP_TEMPLATES"
 ENV_DDEV_ROOT_PATH="DDEV_ROOT"
 ENV_DDEV_TOOLS_PATH="DDEV_TOOLS"
-#DEFAULT_DDEV_ROOT_PATH=$HOME/Dev
-
-# How to use:
-# ~$ mkdir Dev
-# ~$ cd Dev
-# ~$ git clone https://read-only:XRQgs6iGq8TQ6xvoDmDk@gitlab.com:durydevelop/dev-tools.git
-# ~$ cd dev-tools
-# ~$ ./ddev-install.sh
-
-# Result structure:
-# Dev\
-#     |cpp\
-#     |    |helpers_cmake\  <git@gitlab.com:durydevelop/cpp/helpers_cmake.git>
-#     |    |
-#     |    |lib\
-#     |    |    	 |libdpp <git@gitlab.com:durydevelop/cpp/lib/libdpp.git>
-#     |    |
-#     |    |lib-mcu\
-#     |    |         |arduino-lib-oled
-#     |    |         |ddcmotorwheels <git@gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git>
-#     |    |         |ddigitalio     <git@gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git>
-#     |    |         |dmcomm         <git@gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git>
-#     |    |         |dmenu          <git@gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git>
-#     |    |         |dpplib-mcu
-#     |    |         |dservo         <git@gitlab.com:durydevelop/cpp/lib/mcu/dservo.git>
-#     |    |         |dstepper
-#     |    |
-#     |    |src\
-#     |    |
-#     |    |src-mcu\
-#     |    
-#     |dev-tools <git@gitlab.com:durydevelop/dev-tools.git>
+#DEFAULT_DDEV_ROOT_PATH="/home/$SUDO_USER/Dev"
 
 print-usage() {
     echo "This script will install Dury Develop Framework."
@@ -86,11 +53,12 @@ function clone_if_not_exists() {
 # $1    ->  shell configuration file update (~/.bashrc, ~/.zshrc, ecc)
 # $2    ->  path to add
 function write_line_in_file_if_not_exists() {
+
     if [[ -f $1 ]]; then
         ret=$(grep -xF "$2" $1 || echo "$2" >> $1)
-        #if [[ $ret == "" ]]; then
-        #    echo -e "\e[33m\"$2\" PATH has been added to $1\e[0m"
-        #fi
+        if [[ $ret == "" ]]; then
+            echo -e "\e[33m\"$2\" PATH has been added to $1\e[0m"
+        fi
     fi
 }
 
@@ -177,39 +145,10 @@ install_if_not_exists libopencv-dev
 if [[ $(apt-cache search --names-only qt6-base-dev) != "" ]]; then
 	#echo -e "\e[32m$1install qt6-base-dev\e[0m"
 	install_if_not_exists qt6-base-dev
-elif [[ $(apt-cache search --names-only qtbase5-dev) != "" ]]; then
-	#echo -e "\e[32m$1install done qtbase5-dev\e[0m"
-	install_if_not_exists qtbase5-dev
-fi
-
-
-if [[ $() == 0 ]]; then
-	echo ""
-	echo -e -n "\e[1;41m$1 install failed, continue?\e[0m"
-	read -p "(Y/n)" -n 1 -r
-	echo
-	if [[ $REPLY =~ ^[Nn]$ ]]; then
-		exit 1
-	fi
-fi
-install_if_not_exists qt5-base-dev
-if [[  ]]; then
-	echo ""
-	echo -e -n "\e[1;41m$1 install failed, continue?\e[0m"
-	read -p "(Y/n)" -n 1 -r
-	echo
-	if [[ $REPLY =~ ^[Nn]$ ]]; then
-		exit 1
-	fi
-fi
-install_if_not_exists qbase5-dev
-if [[  ]]; then
-	echo ""
-	echo -e -n "\e[1;41m$1 install failed, continue?\e[0m"
-	read -p "(Y/n)" -n 1 -r
-	echo
-	if [[ $REPLY =~ ^[Nn]$ ]]; then
-		exit 1
+else
+	if [[ $(apt-cache search --names-only qtbase5-dev) != "" ]]; then
+		#echo -e "\e[32m$1install done qtbase5-dev\e[0m"
+		install_if_not_exists qtbase5-dev
 	fi
 fi
 
@@ -225,7 +164,6 @@ fi
 DEFAULT_DDEV_ROOT_PATH="$HOME/Dev"
 echo -e "DEFAULT_DDEV_ROOT_PATH=$DEFAULT_DDEV_ROOT_PATH"
 
-#Check folders structure
 CURR_DDEV_ROOT_PATH=$(printenv $ENV_DDEV_ROOT_PATH)
 if [[ $CURR_DDEV_ROOT_PATH == "" ]]; then
 	## No DDEV_ROOT found
@@ -319,19 +257,35 @@ else
     clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/libdpp" git@gitlab.com:durydevelop/cpp/lib/libdpp.git
 fi
 
-# Clone mcu libs
+# Clone DProdig
 if [[ $1 == "-https" ]]; then
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/ddigitalio" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dmcomm" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dservo" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dservo.git
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dmenu" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/ddcmotorwheels" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dprodig" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com/durydevelop/cpp/lib/dprodig.git
 else
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/ddigitalio" git@gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dmcomm" git@gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dservo" git@gitlab.com:durydevelop/cpp/lib/mcu/dservo.git
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dmenu" git@gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/ddcmotorwheels" git@gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dprodig"  git@gitlab.com:durydevelop/cpp/lib/dprodig.git
+fi
+
+# Clone duryfinder
+create_if_not_exists "$DDEV_ROOT_PATH/cpp/src/duryfinder"
+if [[ $1 == "-https" ]]; then
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/src/duryfinder/duryfinder" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com/durydevelop/duryfinder.git
+else
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/src/duryfinder/duryfinder"  git@gitlab.com:photorec-develop/duryfinder.git
+fi
+
+# Clone durylab
+create_if_not_exists "$DDEV_ROOT_PATH/cpp/src/durylab"
+if [[ $1 == "-https" ]]; then
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/src/durylab/durylab" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:photorec-dev/durylab.git
+else
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/src/durylab/durylab"  git@gitlab.com:photorec-dev/durylab.git
+fi
+
+# Clone durylauncher
+create_if_not_exists "$DDEV_ROOT_PATH/cpp/src/durylauncher"
+if [[ $1 == "-https" ]]; then
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/src/durylauncher/durylauncher" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com:photorec-dev/durylauncher.git
+else
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/src/durylauncher/durylauncher"  git@gitlab.com:photorec-dev/durylauncher.git
 fi
 
 # Update environments
@@ -348,15 +302,15 @@ export $ENV_DDEV_GSOAP_TEMPLATES=$DDEV_TOOLS_PATH/gsoap/templates
 
 # Update .shell file
 if [[ -f "$HOME/.bashrc" ]]; then
-	echo "Update .bashrc"
+	echo "bashrc"
 	write_line_in_file_if_not_exists $HOME/.bashrc '. "$HOME/.ddev/ddev-env"'
 	source $HOME/.bashrc
 elif [[ -f "$HOME/.zshrc" ]]; then
-	echo "Update .zshrc"
+	echo "zshrc"
 	write_line_in_file_if_not_exists $HOME/.zshrc '. "$HOME/.ddev/ddev-env"'
 	source $HOME/.zshrc
 else
-	echo "Update .profile"
+	echo "profile"
 	write_line_in_file_if_not_exists $HOME/.profile '. "$HOME/.ddev/ddev-env"'
 	source $HOME/.profile
 fi
