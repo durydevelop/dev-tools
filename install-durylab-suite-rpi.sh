@@ -28,7 +28,7 @@ function create_if_not_exists() {
 }
 
 # Add a permanent share to fstab
-# $1    ->  Windows share       //vsgiove/prodig
+# $1    ->  Remote share       //vsgiove/prodig
 # $2    ->  Local path          /mnt/vsgiove/prodig
 # $3    ->  Username
 # $4    ->  Password
@@ -40,10 +40,14 @@ function add_share_if_not_exists() {
 	    # LOCAL_PATH is not mounted, try to share
 	    test_share $1 $3 $4 $5
 	    if [[ $? == 0 ]]; then
-		sed -i '/$REMOTE_PATH/d' /etc/fstab # delete entry
+            # Test ok, delete entry
+            echo "sed -i '/$1/d' /etc/fstab"
+            ret=$(sed -i '/$1/d' /etc/fstab)
+            echo "ret=$ret"
+            #sed -i '/$1/d' /etc/fstab
 	    else
-		echo -e "\e[31m...non continuo, verifica\e[0m"
-		exit 1
+            echo -e "\e[31m...non continuo, verifica\e[0m"
+            exit 1
 	    fi
 	fi
 	# Create folder and add to fstab

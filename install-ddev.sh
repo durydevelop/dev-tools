@@ -2,7 +2,7 @@
 
 # TODO: Check environments using array
 
-Version=1.0.7
+Version=1.0.8
 GITLAB_ACCESS_TOKEN="read-only:XRQgs6iGq8TQ6xvoDmDk"
 ENV_DDEV_GSOAP_TEMPLATES="DDEV_GSOAP_TEMPLATES"
 ENV_DDEV_ROOT_PATH="DDEV_ROOT"
@@ -22,7 +22,7 @@ ENV_DDEV_TOOLS_PATH="DDEV_TOOLS"
 #     |    |helpers_cmake\  <git@gitlab.com:durydevelop/cpp/helpers_cmake.git>
 #     |    |
 #     |    |lib\
-#     |    |    	 |libdpp <git@gitlab.com:durydevelop/cpp/lib/libdpp.git>
+#     |    |    	 |dpplib <git@gitlab.com:durydevelop/cpp/lib/dpptools.git>
 #     |    |
 #     |    |lib-mcu\
 #     |    |         |arduino-lib-oled
@@ -312,11 +312,11 @@ fi
 # Clone helpers_cmake
 clone_if_not_exists "$DDEV_ROOT_PATH/cpp/helpers_cmake" git@gitlab.com:durydevelop/cpp/helpers_cmake.git
 
-# Clone libdpp
+# Clone dpplib
 if [[ $1 == "-https" ]]; then
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/libdpp" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com/durydevelop/cpp/lib/libdpp.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dpplib" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com/durydevelop/cpp/lib/dpptools.git
 else
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/libdpp" git@gitlab.com:durydevelop/cpp/lib/libdpp.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dpplib" git@gitlab.com:durydevelop/cpp/lib/dpptools.git
 fi
 
 # Clone mcu libs
@@ -333,6 +333,9 @@ else
     clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dmenu" git@gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git
     clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/ddcmotorwheels" git@gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git
 fi
+
+# Clone Qt Advanced Docking
+clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/Qt-Advanced-Docking-System" https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System.git
 
 # Update environments
 echo "Update environments..."
