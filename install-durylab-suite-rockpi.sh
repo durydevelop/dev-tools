@@ -163,6 +163,7 @@ if [ $(id -u) -ne 0 ]; then
   exit 1
 fi
 
+# Fix $HOME env
 HOME="/home/$SUDO_USER"
 
 DEFAULT_DDEV_ROOT_PATH="$HOME/Dev"
@@ -182,9 +183,8 @@ DIR_ADDED=false
 create_if_not_exists "$HOME/DuryCorp/DuryFinder" $SUDO_USER
 sudo -u $SUDO_USER cp -r $MOUNT_POINT/rockpi/* $HOME/DuryCorp/DuryFinder
 mv $HOME/DuryCorp/DuryFinder/lib* /lib/aarch64-linux-gnu/
-#mv $HOME/DuryCorp/DuryFinder/libqtadvanceddocking* /lib/arm-linux-gnueabihf/
-#sudo ln /usr/lib/aarch64-linux-gnu/libwebp.so /usr/lib/aarch64-linux-gnu/libwebp.so.6
-#sudo ln /usr/lib/aarch64-linux-gnu/libtiff.so /usr/lib/aarch64-linux-gnu/libtiff.so.5
+#ln /usr/lib/aarch64-linux-gnu/libwebp.so /usr/lib/aarch64-linux-gnu/libwebp.so.6
+#ln /usr/lib/aarch64-linux-gnu/libtiff.so /usr/lib/aarch64-linux-gnu/libtiff.so.5
 
 if [[ $DIR_ADDED == true ]]; then
     echo -e "\e[32mOK\e[0m"
