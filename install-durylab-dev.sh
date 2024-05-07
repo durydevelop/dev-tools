@@ -1,6 +1,6 @@
 #! /bin/bash
 
-Version=1.0.1
+Version=1.0.2
 GITLAB_ACCESS_TOKEN="read-only:XRQgs6iGq8TQ6xvoDmDk"
 ENV_DDEV_GSOAP_TEMPLATES="DDEV_GSOAP_TEMPLATES"
 ENV_DDEV_ROOT_PATH="DDEV_ROOT"
@@ -250,12 +250,15 @@ fi
 # Clone helpers_cmake
 clone_if_not_exists "$DDEV_ROOT_PATH/cpp/helpers_cmake" git@gitlab.com:durydevelop/cpp/helpers_cmake.git
 
-# Clone libdpp
+# Clone dpptools
 if [[ $1 == "-https" ]]; then
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/libdpp" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com/durydevelop/cpp/lib/libdpp.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dpplib" https://"$GITLAB_ACCESS_TOKEN@"gitlab.com/durydevelop/cpp/lib/dpptools.git
 else
-    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/libdpp" git@gitlab.com:durydevelop/cpp/lib/libdpp.git
+    clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dpplib" git@gitlab.com:durydevelop/cpp/lib/dpptools.git
 fi
+
+# Clone Qt Advanced Docking
+clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/Qt-Advanced-Docking-System" https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System.git
 
 # Clone DProdig
 if [[ $1 == "-https" ]]; then
