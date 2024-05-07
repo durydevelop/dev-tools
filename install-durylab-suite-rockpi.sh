@@ -163,6 +163,11 @@ if [ $(id -u) -ne 0 ]; then
   exit 1
 fi
 
+HOME="/home/$SUDO_USER"
+
+DEFAULT_DDEV_ROOT_PATH="$HOME/Dev"
+echo -e "DEFAULT_DDEV_ROOT_PATH=$DEFAULT_DDEV_ROOT_PATH"
+
 source install-durylab-share-rockpi.sh
 
 # DuryFinder Install
@@ -174,10 +179,10 @@ if ! mountpoint -q $MOUNT_POINT; then
 fi
 DIR_DONE=false
 DIR_ADDED=false
-create_if_not_exists "/home/$SUDO_USER/DuryCorp/DuryFinder" $SUDO_USER
-sudo -u $SUDO_USER cp -r $MOUNT_POINT/rockpi/* /home/$SUDO_USER/DuryCorp/DuryFinder
-#mv /home/$SUDO_USER/DuryCorp/DuryFinder/libopencv* /lib/arm-linux-gnueabihf/
-#mv /home/$SUDO_USER/DuryCorp/DuryFinder/libqtadvanceddocking* /lib/arm-linux-gnueabihf/
+create_if_not_exists "$HOME/DuryCorp/DuryFinder" $SUDO_USER
+sudo -u $SUDO_USER cp -r $MOUNT_POINT/rockpi/* $HOME/DuryCorp/DuryFinder
+mv $HOME/DuryCorp/DuryFinder/lib* /lib/aarch64-linux-gnu/
+#mv $HOME/DuryCorp/DuryFinder/libqtadvanceddocking* /lib/arm-linux-gnueabihf/
 #sudo ln /usr/lib/aarch64-linux-gnu/libwebp.so /usr/lib/aarch64-linux-gnu/libwebp.so.6
 #sudo ln /usr/lib/aarch64-linux-gnu/libtiff.so /usr/lib/aarch64-linux-gnu/libtiff.so.5
 
@@ -188,13 +193,13 @@ elif [[ $DIR_DONE == true ]]; then
 fi
 
 # Set file mode execute
-chmod +x /home/$SUDO_USER/DuryCorp/DuryFinder/DuryFinder
+chmod +x $HOME/DuryCorp/DuryFinder/DuryFinder
 
 # DuryFinder lib
 #install_if_not_exists "libgdcm3.0"
-#install_if_not_exists "libgdal28"
-#install_if_not_exists "libtbb2"
-install_if_not_exists "qt6-base-dev"
+install_if_not_exists "libgda32"
+install_if_not_exists "libtbb12"
+#install_if_not_exists "qt6-base-dev"
 
 # sudo apt-get autoremove -y
 
@@ -202,9 +207,9 @@ install_if_not_exists "qt6-base-dev"
 echo -n "Installazione DuryLauncher..."
 DIR_DONE=false
 DIR_ADDED=false
-create_if_not_exists "/home/$SUDO_USER/DuryCorp/DuryLauncher" $SUDO_USER
-sudo -u $SUDO_USER cp -r /mnt/durylauncher/app/rockpi/* /home/$SUDO_USER/DuryCorp/DuryLauncher
-#sudo -u $SUDO_USER cp /home/$SUDO_USER/DuryCorp/DuryLauncher/launch/desktop/* /home/$SUDO_USER/Desktop
+create_if_not_exists "$HOME/DuryCorp/DuryLauncher" $SUDO_USER
+sudo -u $SUDO_USER cp -r /mnt/durylauncher/app/rockpi/* $HOME/DuryCorp/DuryLauncher
+#sudo -u $SUDO_USER cp $HOME/DuryCorp/DuryLauncher/launch/desktop/* $HOME/Desktop
 if [[ $DIR_ADDED == true ]]; then
     echo -e "\e[32mOK\e[0m"
 elif [[ $DIR_DONE == true ]]; then
@@ -212,12 +217,12 @@ elif [[ $DIR_DONE == true ]]; then
 fi
 
 # Set file mode execute
-chmod +x /home/$SUDO_USER/DuryCorp/DuryLauncher/durylauncher.sh
-chmod +x /home/$SUDO_USER/DuryCorp/DuryLauncher/durylauncher
-chmod +x /home/$SUDO_USER/DuryCorp/DuryLauncher/launch/*.sh
+#chmod +x $HOME/DuryCorp/DuryLauncher/durylauncher.sh
+chmod +x $HOME/DuryCorp/DuryLauncher/durylauncher
+chmod +x $HOME/DuryCorp/DuryLauncher/launch/*.sh
 
 # Add to autorun
-#write_line_in_file_if_not_exists /etc/xdg/lxsession/LXDE-pi/autostart "@/home/$SUDO_USER/DuryCorp/DuryLauncher/durylauncher.sh"
+#write_line_in_file_if_not_exists /etc/xdg/lxsession/LXDE-pi/autostart "@$HOME/DuryCorp/DuryLauncher/durylauncher.sh"
 
 echo "Configurazione cups"
 install_if_not_exists cups lpadmin true

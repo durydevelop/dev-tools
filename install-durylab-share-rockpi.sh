@@ -186,43 +186,42 @@ echo -ne "lp\nlp\n" | smbpasswd -a -s lp
 
 echo -n "Controllo shares..."
 
-# DuryFinder Working Folders
+## DuryFinder Working Folders
+# \\vsgiove
 REMOTE_PATH="//vsgiove.intra.photorec.it/RISORSE/DuryCorp/DuryFinder/common-data/rockpi"
 LOCAL_PATH="/mnt/duryfinder/queues"
-# Access //vsgiove for the first time
 add_share_if_not_exists $REMOTE_PATH $LOCAL_PATH $USER_NAME $PASSWORD $DOMAIN
 
 REMOTE_PATH="//vsgiove.intra.photorec.it/PRODIG"
 LOCAL_PATH="/mnt/vsgiove/prodig"
-# LOCAL_PATH is not mounted, try to share
 add_share_if_not_exists $REMOTE_PATH $LOCAL_PATH $USER_NAME $PASSWORD $DOMAIN
 
-REMOTE_PATH="//qnap02.intra.photorec.it/Bck_Ordini"
-LOCAL_PATH="/mnt/Bck_Ordini"
-# Test //qnap02 for first time
+REMOTE_PATH="//vsgiove.intra.photorec.it/LOGIN"
+LOCAL_PATH="/mnt/vsgiove/login"
 add_share_if_not_exists $REMOTE_PATH $LOCAL_PATH $USER_NAME $PASSWORD $DOMAIN
 
-# DuryFinder Update
 REMOTE_PATH="//vsgiove.intra.photorec.it/RISORSE/DuryCorp/DuryFinder/update"
 LOCAL_PATH="/mnt/duryfinder/update"
 add_share_if_not_exists $REMOTE_PATH  $LOCAL_PATH $USER_NAME $PASSWORD $DOMAIN
 
-# DuryFinder App
 REMOTE_PATH="//vsgiove.intra.photorec.it/RISORSE/DuryCorp/DuryFinder/app"
 LOCAL_PATH="/mnt/duryfinder/app"
-# LOCAL_PATH is not mounted, try to share
 add_share_if_not_exists $REMOTE_PATH  $LOCAL_PATH $USER_NAME $PASSWORD $DOMAIN
 
-# DuryLauncher Update
+# \\qnap02
+REMOTE_PATH="//qnap02.intra.photorec.it/Bck_Ordini"
+LOCAL_PATH="/mnt/Bck_Ordini"
+add_share_if_not_exists $REMOTE_PATH $LOCAL_PATH $USER_NAME $PASSWORD $DOMAIN
+
+## DuryLauncher Update
+# \\vsgiove
 REMOTE_PATH="//vsgiove.intra.photorec.it/RISORSE/DuryCorp/DuryLauncher/update"
 LOCAL_PATH="/mnt/durylauncher/update"
-# LOCAL_PATH is not mounted, try to share
 add_share_if_not_exists $REMOTE_PATH  $LOCAL_PATH $USER_NAME $PASSWORD $DOMAIN
 
 # DuryLauncher App
 REMOTE_PATH="//vsgiove.intra.photorec.it/RISORSE/DuryCorp/DuryLauncher/app"
 LOCAL_PATH="/mnt/durylauncher/app"
-# LOCAL_PATH is not mounted, try to share
 add_share_if_not_exists $REMOTE_PATH  $LOCAL_PATH $USER_NAME $PASSWORD $DOMAIN
 
 # Try mount from fstab
@@ -231,9 +230,9 @@ if [[ $SHARE_ADDED == true ]]; then
     echo "mount delle shares da fstab, attendi..."
     mount -a
     if [[ $? == 0 ]]; then
-	echo -ne "\e[32riuscito\e[0m"
+	echo -ne "\e[32mriuscito\e[0m"
     else
-        echo -e "\e[31non riusito"
+        echo -e "\e[31mnon riusito"
         echo -e "riavvia la stazione e riprova\e[0m"
 	exit
     fi
