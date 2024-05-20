@@ -3,14 +3,14 @@
 #       _Se -y e need-... ricontrollare
 #       _Opzione -x multiple
 
-Version=1.0.4
+Version=1.0.5
 
 print-usage() {
     echo "Automate some git operations on all repositories in current folder."
     echo "It execute fetch and stauts and, if needed, ask you for commit, push, pull."
     echo "Without options, only first level of folders are scanned. Use -r option to recurse in sub-folders."
     echo
-    echo "Usage: $0 [-p <path>] [-r] [-c] [-h] [-y] [-n] [-x <folder name>]"
+    echo "Usage: $0 [-p <path>] [-r] [-c] [-h] [-y] [-s] [-x <folder name>]"
     echo "Options:"
     echo -e "-h, --help\t\tPrint this help."
     echo -e "-p, --path <path>\tStart from <path> folder."
@@ -23,7 +23,7 @@ print-usage() {
     echo -e "\t\t\tOnly on repositories that are \"not up to date\"."
     echo -e "\t\t\tBranch \"master-nightly\"will be created if missing."
     echo -e "-y, --yes-to-all\tYes to all: don't ask for confermation."
-    echo -e "-u, --update-cmake-helper\tUpdate cmake helper script in /cmake folder before commit."
+    echo -e "-s, --sync-cmake-helper\tSync cmake helper scripts in /cmake folder before commit."
     echo -e "-v, --verbose\t\tVerbose output only."
 }
 
@@ -279,7 +279,7 @@ POSITIONAL=()
                 shift # past argument
                 shift # past value
                 ;;
-            -u|--update-cmake-helper)
+            -s|--sync-cmake-helper)
                 UPDATE_CMAKE_HELPER=true
                 shift # past argument
                 ;;
@@ -294,6 +294,12 @@ POSITIONAL=()
         esac
     done
 set -- "${POSITIONAL[@]}" # restore positional parameters
+
+if [[ $POSITIONAL ]]; then
+	echo -e "\e[31mUnknown option: ${POSITIONAL[@]}\e[0m"
+	print-usage
+	exit
+fi
 
 #echo START_PATH=$START_PATH
 #echo FORCE_NIGHTLY_COMMIT=$FORCE_NIGHTLY_COMMIT
