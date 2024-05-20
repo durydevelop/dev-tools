@@ -26,6 +26,11 @@ bool <classNamespace><functionName>::IsReady(DQueryData &Data)
     return true;
 }
 
+std::string DSoapAHIInfoSedi_TabularQuery::GetWsdlUrl(void)
+{
+    return(WsdlUrl);
+}
+
 std::string <classNamespace><functionName>::GetLastErrorText(void)
 {
     std::string s(*soap_faultstring(Client.soap));

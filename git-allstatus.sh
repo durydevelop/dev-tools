@@ -3,7 +3,7 @@
 #       _Se -y e need-... ricontrollare
 #       _Opzione -x multiple
 
-Version=1.0.2
+Version=1.0.4
 
 print-usage() {
     echo "Automate some git operations on all repositories in current folder."
@@ -23,6 +23,7 @@ print-usage() {
     echo -e "\t\t\tOnly on repositories that are \"not up to date\"."
     echo -e "\t\t\tBranch \"master-nightly\"will be created if missing."
     echo -e "-y, --yes-to-all\tYes to all: don't ask for confermation."
+    echo -e "-u, --update-cmake-helper\tUpdate cmake helper script in /cmake folder before commit."
     echo -e "-v, --verbose\t\tVerbose output only."
 }
 
@@ -61,6 +62,19 @@ status() {
     echo -n "Found repo in $curr_dir -> "
     ((repo_count++))
     cd $curr_dir
+    if [[ -d cmake ]]; then
+        if [[ $UPDATE_CMAKE_HELPER == true ]]; then
+            if [[ -d "$DDEV_ROOT/cpp/helpers_cmake" ]]; then
+                echo -e "\e[33mUpdate cmake helpers\e[0m"
+                res=$(rsync -q $DDEV_ROOT/cpp/helpers_cmake/* ./cmake 2>&1 1>/dev/null)
+                if [[ $res == "" ]] ; then
+                    echo -e "\e[32mDone\e[0m"
+                else
+                    echo -e "\e[31mCannot update: $res\e[0m"
+                fi
+            fi
+        fi
+    fi
     fetch=$(LC_ALL=C git fetch) # 2>&1 >/dev/null)
     #echo fetch=$fetch
     status=$(LC_ALL=C git status) # 2>&1 >/dev/null)
@@ -257,19 +271,23 @@ POSITIONAL=()
                 shift # past value
                 ;;
             -f|--force-commit-nightly)
-            FORCE_NIGHTLY_COMMIT=true
-            shift # past argument
-            ;;
+                FORCE_NIGHTLY_COMMIT=true
+                shift # past argument
+                ;;
             -x|--exclude)
                 EXCLUDE_FOLDER="$2"
                 shift # past argument
                 shift # past value
                 ;;
+            -u|--update-cmake-helper)
+                UPDATE_CMAKE_HELPER=true
+                shift # past argument
+                ;;
             -h|--help)
                 print-usage
                 exit
-            ;;
-            *)    # unknown option
+                ;;
+            *)        # unknown option
             POSITIONAL+=("$1") # save it in an array for later
             shift # past argument
             ;;
