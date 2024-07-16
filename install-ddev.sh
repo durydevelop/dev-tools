@@ -7,14 +7,6 @@ GITLAB_ACCESS_TOKEN="read-only:XRQgs6iGq8TQ6xvoDmDk"
 ENV_DDEV_GSOAP_TEMPLATES="DDEV_GSOAP_TEMPLATES"
 ENV_DDEV_ROOT_PATH="DDEV_ROOT"
 ENV_DDEV_TOOLS_PATH="DDEV_TOOLS"
-#DEFAULT_DDEV_ROOT_PATH=$HOME/Dev
-
-# How to use:
-# ~$ mkdir Dev
-# ~$ cd Dev
-# ~$ git clone https://read-only:XRQgs6iGq8TQ6xvoDmDk@gitlab.com:durydevelop/dev-tools.git
-# ~$ cd dev-tools
-# ~$ ./ddev-install.sh
 
 # Result structure:
 # Dev\
@@ -26,13 +18,7 @@ ENV_DDEV_TOOLS_PATH="DDEV_TOOLS"
 #     |    |
 #     |    |lib-mcu\
 #     |    |         |arduino-lib-oled
-#     |    |         |ddcmotorwheels <git@gitlab.com:durydevelop/cpp/lib/mcu/ddcmotorwheels.git>
-#     |    |         |ddigitalio     <git@gitlab.com:durydevelop/cpp/lib/mcu/ddigitalio.git>
-#     |    |         |dmcomm         <git@gitlab.com:durydevelop/cpp/lib/mcu/dmcomm.git>
-#     |    |         |dmenu          <git@gitlab.com:durydevelop/cpp/lib/mcu/dmenu.git>
 #     |    |         |dpplib-mcu
-#     |    |         |dservo         <git@gitlab.com:durydevelop/cpp/lib/mcu/dservo.git>
-#     |    |         |dstepper
 #     |    |
 #     |    |src\
 #     |    |
@@ -44,108 +30,25 @@ print-usage() {
     echo "This script will install Dury Develop Framework."
     echo "Usage: $(basename "$0") [-p <path>] [-h]"
     echo "Options:"
-	echo -e "-p, --path <path>\tStart from <path> folder."
+	echo -e "-p, --path <path>\tInstall in <path> folder."
     echo -e "-h, --help\t\tPrint this help."
-}
-
-# Create $1 folder if does not exists
-function create_if_not_exists() {
-    echo -n -e "Checking for \e[33m$1\e[0m folder "
-    if [[ ! -d "$1" ]]; then
-        mkdir -p $1
-        if [[ ! -d "$1" ]]; then
-            echo -e "\e[31mCan not create...stopping\e[0m"
-            exit
-        fi
-        echo -e "\e[32mCREATED\e[0m"
-    else
-        echo -e "\e[32mOK\e[0m"
-    fi
-}
-
-# Clone a git repo using $1 as dest folder and $2 as git url
-function clone_if_not_exists() {
-    echo -n -e "Check for \e[33m$1\e[0m repo "
-    if [[ ! -d "$1/.git" ]]; then
-        echo ""
-        echo -e "\e[33mCloning $2\e[0m"
-        git clone $2 $1
-        ret=$?
-        if [[ $ret -eq 0 ]]; then
-            echo -e "Cloned \e[32mOK\e[0m"
-        else
-            echo -e "\e[1;41mERROR $ret\e[0m"
-            error_msg="Cloning $2 failed.\nMay be you don't have a ssh public key, try to generate it with command 'ssh-keygen -t rsa -b4096 -C \"your@mail.it\"' or try to use -https option".
-        fi
-    else
-        echo -e "\e[32mOK\e[0m"
-    fi
-}
-
-# Write text line in a file: if does not exist, add it
-# $1    ->  shell configuration file update (~/.bashrc, ~/.zshrc, ecc)
-# $2    ->  path to add
-function write_line_in_file_if_not_exists() {
-    if [[ -f $1 ]]; then
-        ret=$(grep -xF "$2" $1 || echo "$2" >> $1)
-        #if [[ $ret == "" ]]; then
-        #    echo -e "\e[33m\"$2\" PATH has been added to $1\e[0m"
-        #fi
-    fi
-}
-
-# Install pkg if does not exists
-# $1	->  pkg name (e.g. smb)
-# [$2]	->  command used to check pkg (e.g. smbpasswd)
-function install_if_not_exists() {
-	local MISSING=0
-	if [[ -z $2 ]]; then
-		# 2nd argument not found use dpkg
-		# search for "$1 " or "$1:" (for lib like libboost-dev:amd64)
-		RET=$(dpkg -l | grep "$1 \|$1:")
-		#echo "RET=$RET"
-		if [[ $RET == "" ]];then
-		# pkg not found
-		MISSING=1
-	    fi
-	else
-	    if ! command -v $2 &> /dev/null; then
-		# command not found
-		MISSING=1
-	    fi
-	fi
-	
-	if [[ $MISSING == 1 ]]; then
-		echo ""
-		echo -e -n "\e[33m$1 is not installed, install it? \e[0m"
-		read -p "(Y/n)" -n 1 -r
-		echo
-		if [[ $REPLY =~ ^[Nn]$ ]]; then
-			return 1
-		fi
-		sudo apt-get install -y $1;
-		if [ $? -eq 0 ]; then
-			echo -e "\e[32m$1 install done\e[0m"
-		else
-			return 0
-		fi
-
-		sudo apt-get install -y -f
-		if [ ! $? -eq 0 ]; then
-			echo -e "\e[1;41mMissed dependency install failed\e[0m"
-			return 0
-		fi
-		return 1
-	fi
 }
 
 #################################### entry-point ####################################
 
-# parse command line
+# Full path of the current script
+THIS=`readlink -f "${BASH_SOURCE[0]}" 2>/dev/null||echo $0`
+
+# The directory where current script resides
+DIR=`dirname "${THIS}"`
+
+# 'Dot' means 'source', i.e. 'include':
+. "$DIR/functions.sh"
+
+# Parse command line
 POSITIONAL=()
     while [[ $# -gt 0 ]]; do
         key="$1"
-
         case $key in
             -p|--path)
                 echo -e "Forcing $ENV_DDEV_ROOT_PATH to \e[33m$2\e[0m"
@@ -168,42 +71,31 @@ POSITIONAL=()
     done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-#Check for dependences
+## Main dependences
 install_if_not_exists git
 install_if_not_exists cmake
 install_if_not_exists build-essential
 install_if_not_exists libboost-dev
 install_if_not_exists libopencv-dev
+
+## Qt dependences
+# possible:
+# qt6-default
+# qt6-base-dev
+# qt6-base-private-dev
+# qt6-tools-dev
+# libqt6svg6
+# qt6-qtdeclarative
 if [[ $(apt-cache search --names-only qt6-base-dev) != "" ]]; then
-	#echo -e "\e[32m$1install qt6-base-dev\e[0m"
 	install_if_not_exists qt6-base-dev
 elif [[ $(apt-cache search --names-only qtbase5-dev) != "" ]]; then
-	#echo -e "\e[32m$1install done qtbase5-dev\e[0m"
 	install_if_not_exists qtbase5-dev
+elif [[ $(apt-cache search --names-only qt5-base-dev) != "" ]]; then
+	install_if_not_exists qt5-base-dev
+elif [[ $(apt-cache search --names-only qbase5-dev) != "" ]]; then
+	install_if_not_exists qbase5-dev
 fi
-
-
 if [[ $() == 0 ]]; then
-	echo ""
-	echo -e -n "\e[1;41m$1 install failed, continue?\e[0m"
-	read -p "(Y/n)" -n 1 -r
-	echo
-	if [[ $REPLY =~ ^[Nn]$ ]]; then
-		exit 1
-	fi
-fi
-install_if_not_exists qt5-base-dev
-if [[  ]]; then
-	echo ""
-	echo -e -n "\e[1;41m$1 install failed, continue?\e[0m"
-	read -p "(Y/n)" -n 1 -r
-	echo
-	if [[ $REPLY =~ ^[Nn]$ ]]; then
-		exit 1
-	fi
-fi
-install_if_not_exists qbase5-dev
-if [[  ]]; then
 	echo ""
 	echo -e -n "\e[1;41m$1 install failed, continue?\e[0m"
 	read -p "(Y/n)" -n 1 -r
