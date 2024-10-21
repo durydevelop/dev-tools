@@ -42,8 +42,8 @@ THIS=`readlink -f "${BASH_SOURCE[0]}" 2>/dev/null||echo $0`
 # The directory where current script resides
 DIR=`dirname "${THIS}"`
 
-# 'Dot' means 'source', i.e. 'include':
-. "$DIR/functions.sh"
+# Include script library ('Dot' means 'source', i.e. 'include':)
+. "$DIR/lib.sh"
 
 # Parse command line
 POSITIONAL=()
