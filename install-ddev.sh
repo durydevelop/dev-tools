@@ -132,12 +132,6 @@ function write_line_in_file_if_not_exists() {
 
 #################################### entry-point ####################################
 
-# Full path of the current script
-THIS=`readlink -f "${BASH_SOURCE[0]}" 2>/dev/null||echo $0`
-
-# The directory where current script resides
-DIR=`dirname "${THIS}"`
-
 # Parse command line
 POSITIONAL=()
     while [[ $# -gt 0 ]]; do
@@ -300,6 +294,11 @@ git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dpplib" https://github.com/dury
 # Clone dpplibmcu
 git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dpplibmcu" https://github.com/durydevelop/dpplibmcu.git
 
+# Clone dwebsocket
+git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dwebsocket" https://github.com/durydevelop/dwebsocket.git
+
+# Clone raywui
+git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/raywui" https://github.com/durydevelop/raywui.git
 
 # Clone Qt Advanced Docking
 git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/Qt-Advanced-Docking-System" https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System.git
