@@ -14,10 +14,12 @@ ENV_DDEV_TOOLS_PATH="DDEV_TOOLS"
 #     |    |
 #     |    |lib\
 #     |    |    	 |dpplib <git@gitlab.com:durydevelop/cpp/lib/dpptools.git>
+#     |    |    	 |dwebsocket <https://github.com/durydevelop/dwebsocket.git>
 #     |    |         |Qt-ads <https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System.git>
 #     |    |
 #     |    |lib-mcu\
-#     |    |         |dpplib-mcu
+#     |    |         |dpplib-mcu <https://github.com/durydevelop/dpplibmcu.git>
+#     |    |         |raywui <https://github.com/durydevelop/raywui.git>
 #     |    |
 #     |    |src\
 #     |    |
@@ -36,7 +38,7 @@ print-usage() {
 ################################### Functions ####################################
 # Install pkg if does not exists
 # $1	->  pkg name (e.g. smb)
-# [$2]	->  command used to check pkg (e.g. smbpasswd)
+# [$2]	->  alternative command (to dpkg) used for installed check (e.g. smbpasswd to check samba)
 # return 1 on success otherwise 0
 # How to check return value:
 #if [[ $() == 0 ]]; then
@@ -47,8 +49,13 @@ function install_if_not_exists() {
 	local MISSING=0
 	if [[ -z $2 ]]; then
 		# 2nd argument not found use dpkg
-		# search for "$1 " or "$1:" (for lib like libboost-dev:amd64)
-		RET=$(dpkg -l | grep "$1 \|$1:")
+		if [[ MSYS ]]; then
+			# MSYS2: use pacman
+			RET=$(pacman -Qs $1)
+		else
+			# Linux: search for "$1 " or "$1:" (for lib like libboost-dev:amd64)
+			RET=$(dpkg -l | grep "$1 \|$1:")
+		fi
 		#echo "RET=$RET"
 		if [[ $RET == "" ]];then
 		# pkg not found
@@ -69,7 +76,11 @@ function install_if_not_exists() {
 		if [[ $REPLY =~ ^[Nn]$ ]]; then
 			return 1
 		fi
-		sudo apt-get install -y $1;
+		if [[ MSYS ]]; then
+			pacman -S $1 --noconfirm
+		else
+			sudo apt-get install -y $1
+		fi
 		if [ $? -eq 0 ]; then
 			echo -e "\e[32m$1 install done\e[0m"
 		else
@@ -158,6 +169,24 @@ POSITIONAL=()
     done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
+## Main info
+echo "-- $(basename "$0") Ver. $Version --"
+if [ $(id -u) -ne 0 ]; then
+  # No sudo
+  HOME="$HOME"
+else
+	#echo -e "HOME before = $HOME"
+	HOME="/home/$SUDO_USER"
+	#echo -e "HOME after = $HOME"
+fi
+if [[ "$(uname -s)" =~ ^MSYS_NT.* ]]; then
+	MSYS=true
+    echo "MSYS environment"
+else
+	MSYS=false
+    #echo "Not in MSYS"
+fi
+
 ## Main dependences
 install_if_not_exists git
 install_if_not_exists cmake
@@ -193,15 +222,6 @@ if [[ $() == 0 ]]; then
 	fi
 fi
 
-echo "-- $(basename "$0") Ver. $Version --"
-if [ $(id -u) -ne 0 ]; then
-  # No sudo
-  HOME="$HOME"
-else
-	#echo -e "HOME before = $HOME"
-	HOME="/home/$SUDO_USER"
-	#echo -e "HOME after = $HOME"
-fi
 DEFAULT_DDEV_ROOT_PATH="$HOME/Dev"
 echo -e "DEFAULT_DDEV_ROOT_PATH=$DEFAULT_DDEV_ROOT_PATH"
 
@@ -212,7 +232,7 @@ if [[ $CURR_DDEV_ROOT_PATH == "" ]]; then
 	# set default
 	if [[ $DDEV_ROOT_PATH == "" ]]; then
 		# No manual entered root path
-		echo "Seems DDEV-TOOLS are not installed, use $DEFAULT_DDEV_ROOT_PATH as $ENV_DDEV_ROOT_PATH environment?"
+		echo "Seems DDEV-TOOLS are not installed, use $DEFAULT_DDEV_ROOT_PATH as ENV_DDEV_ROOT_PATH environment?"
 		DDEV_ROOT_PATH=$DEFAULT_DDEV_ROOT_PATH
 	else
 		# Manual entered root path
@@ -222,7 +242,12 @@ if [[ $CURR_DDEV_ROOT_PATH == "" ]]; then
 	read -p "(Y/n)" -n 1 -r
 	echo
 	if [[ $REPLY =~ ^[Nn]$ ]]; then
-		exit 1
+		read -p "New path: " -r
+		if [[ $REPLY = "" ]]; then
+			exit 1
+		else
+			DDEV_ROOT_PATH=$(realpath $REPLY)
+		fi
 	fi
 	dir_create_if_not_exists $DDEV_ROOT_PATH
 else
@@ -288,20 +313,19 @@ git_clone_if_not_exists $DDEV_TOOLS_PATH https://github.com/durydevelop/dev-tool
 # Clone helpers_cmake
 git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/helpers_cmake" https://github.com/durydevelop/helpers_cmake.git
 
+## cpp/lib
 # Clone dpplib
 git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dpplib" https://github.com/durydevelop/dpplib.git
-
-# Clone dpplibmcu
-git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dpplibmcu" https://github.com/durydevelop/dpplibmcu.git
-
 # Clone dwebsocket
 git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dwebsocket" https://github.com/durydevelop/dwebsocket.git
-
-# Clone raywui
-git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/raywui" https://github.com/durydevelop/raywui.git
-
 # Clone Qt Advanced Docking
 git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/Qt-Advanced-Docking-System" https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System.git
+
+## cpp/lib-mcu
+# Clone dpplibmcu
+git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dpplibmcu" https://github.com/durydevelop/dpplibmcu.git
+# Clone raywui
+git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/raywui" https://github.com/durydevelop/raywui.git
 
 # Update environments
 echo "Update environments..."
