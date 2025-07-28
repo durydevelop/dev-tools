@@ -10,7 +10,7 @@ ENV_DDEV_TOOLS_PATH="DDEV_TOOLS"
 # Result structure:
 # Dev\
 #     |cpp\
-#     |    |helpers_cmake\  <https://github.com/durydevelop/helpers_cmake.git>
+#     |    |helpers_cmake\  <git@gitlab.com:durydevelop/cpp/helpers_cmake.git> <https://github.com/durydevelop/helpers_cmake.git>
 #     |    |
 #     |    |lib\
 #     |    |    	 |dpplib <git@gitlab.com:durydevelop/cpp/lib/dpptools.git>
@@ -25,7 +25,7 @@ ENV_DDEV_TOOLS_PATH="DDEV_TOOLS"
 #     |    |
 #     |    |src-mcu\
 #     |    
-#     |dev-tools <https://github.com/durydevelop/dev-tools.git>
+#     |dev-tools <git@gitlab.com:durydevelop/dev-tools.git> <https://github.com/durydevelop/dev-tools.git>
 
 print-usage() {
     echo "This script will install Dury Develop Framework."
