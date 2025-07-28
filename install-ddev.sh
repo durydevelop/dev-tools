@@ -13,12 +13,12 @@ ENV_DDEV_TOOLS_PATH="DDEV_TOOLS"
 #     |    |helpers_cmake\  <git@gitlab.com:durydevelop/cpp/helpers_cmake.git> <https://github.com/durydevelop/helpers_cmake.git>
 #     |    |
 #     |    |lib\
-#     |    |    	 |dpplib <git@gitlab.com:durydevelop/cpp/lib/dpptools.git>
-#     |    |    	 |dwebsocket <https://github.com/durydevelop/dwebsocket.git>
+#     |    |    	 |dpplib <git@gitlab.com:durydevelop/cpp/lib/dpplib.git> <https://github.com/durydevelop/dpplib.git>
+#     |    |    	 |dwebsocket <git@gitlab.com:durydevelop/cpp/lib/dwebsocket.git> <https://github.com/durydevelop/dwebsocket.git>
 #     |    |         |Qt-ads <https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System.git>
 #     |    |
 #     |    |lib-mcu\
-#     |    |         |dpplib-mcu <https://github.com/durydevelop/dpplibmcu.git>
+#     |    |         |dpplib-mcu <git@gitlab.com:durydevelop/cpp/lib-mcu/dpplibmcu.git> <https://github.com/durydevelop/dpplibmcu.git>
 #     |    |         |raywui <https://github.com/durydevelop/raywui.git>
 #     |    |
 #     |    |src\
