@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 ## Use lib.sh as functions library
 # Full path of the current script
@@ -42,5 +42,7 @@ install_if_not_exists mesa-common-dev
 install_if_not_exists libx11-dev
 install_if_not_exists libxrandr-dev
 install_if_not_exists libxinerama-dev
-#install_if_not_exists libxcursor
+if linux
+	install_if_not_exists libxcursor-dev
+fi
 install_if_not_exists libxi-dev
