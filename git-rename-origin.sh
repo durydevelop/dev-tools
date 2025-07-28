@@ -11,7 +11,9 @@ git remote set-url origin $1
 git push -u origin --all
 git push -u origin --tags
 
-echo New origin
-git remote show origin
-echo Old origin
-git remote show old-origin
+#echo Old origin
+#git remote show old-origin
+#echo New origin
+#git remote show origin
+git remote -v
+
