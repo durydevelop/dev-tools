@@ -5,6 +5,9 @@
 
 Version=1.0.5
 
+# Include script library ('Dot' means 'source', i.e. 'include':)
+#. "$DIR/lib.sh"
+
 print-usage() {
     echo "Automate some git operations on all repositories in current folder."
     echo "It execute fetch and stauts and, if needed, ask you for commit, push, pull."
