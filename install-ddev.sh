@@ -195,6 +195,7 @@ install_if_not_exists lldb
 install_if_not_exists libboost-dev
 install_if_not_exists libopencv-dev
 install_if_not_exists libgl1-mesa-dev
+install_if_not_exists libxkbcommon-dev
 
 ## Qt dependences
 # possible:
