@@ -57,7 +57,7 @@ function install_if_not_exists() {
 	local MISSING=0
 	if [[ -z $2 ]]; then
 		# 2nd argument not found use dpkg
-		if [[ MSYS ]]; then
+		if [[ "$OSTYPE" == msys* ]]; then
 			# MSYS2: use pacman
 			RET=$(pacman -Qs $1)
 		else
@@ -84,7 +84,7 @@ function install_if_not_exists() {
 		if [[ $REPLY =~ ^[Nn]$ ]]; then
 			return 1
 		fi
-		if [[ MSYS ]]; then
+		if [[ "$OSTYPE" == msys* ]]; then
 			pacman -S $1 --noconfirm
 		else
 			sudo apt-get install -y $1
@@ -193,13 +193,13 @@ else
 	HOME="/home/$SUDO_USER"
 	#echo -e "HOME after = $HOME"
 fi
-if [[ "$(uname -s)" =~ ^MSYS_NT.* ]]; then
-	MSYS=true
-    echo "MSYS environment"
-else
-	MSYS=false
-    #echo "Not in MSYS"
-fi
+#if [[ "$(uname -s)" =~ ^MSYS_NT.* ]]; then
+#	MSYS=true
+#    echo "MSYS environment"
+#else
+#	MSYS=false
+#    #echo "Not in MSYS"
+#fi
 
 ## Main dependences
 install_if_not_exists git
