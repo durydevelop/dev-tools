@@ -7,23 +7,33 @@ ENV_DDEV_GSOAP_TEMPLATES="DDEV_GSOAP_TEMPLATES"
 ENV_DDEV_ROOT_PATH="DDEV_ROOT"
 ENV_DDEV_TOOLS_PATH="DDEV_TOOLS"
 
+REPO_DEV_TOOLS=git@gitlab.com:durydevelop/dev-tools.git
+REPO_HEPLERS_CMAKE=git@gitlab.com:durydevelop/cpp/helpers_cmake.git
+REPO_DPPLIB=git@gitlab.com:durydevelop/cpp/lib/dpplib.git
+REPO_DPPLIBMCU=git@gitlab.com:durydevelop/cpp/lib-mcu/dpplibmcu.git
+REPO_DWEBSOCKET=git@gitlab.com:durydevelop/cpp/lib/dwebsocket.git
+REPO_RAYWUI=git@github.com:durydevelop/raywui.git
+REPO_QT_ADS=https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System.git
+
 # Result structure:
 # Dev\
 #     |cpp\
-#     |    |helpers_cmake\  <https://github.com/durydevelop/helpers_cmake.git>
+#     |    |helpers_cmake\  git@gitlab.com:durydevelop/cpp/helpers_cmake.git - https://github.com/durydevelop/helpers_cmake.git
 #     |    |
 #     |    |lib\
-#     |    |    	 |dpplib <git@gitlab.com:durydevelop/cpp/lib/dpptools.git>
-#     |    |         |Qt-ads <https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System.git>
+#     |    |    	 |dpplib\ git@gitlab.com:durydevelop/cpp/lib/dpplib.git - git@gitlab.com:durydevelop/cpp/lib/dpptools.git
+#     |    |    	 |dwebsocket\ git@gitlab.com:durydevelop/cpp/lib/dwebsocket.git
+#     |    |         |Qt-ads\ https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System.git
 #     |    |
 #     |    |lib-mcu\
-#     |    |         |dpplib-mcu
+#     |    |         |dpplib-mcu\ git@gitlab.com:durydevelop/cpp/lib-mcu/dpplibmcu.git - https://github.com/durydevelop/dpplibmcu.git
+#     |    |         |raywui\ git@github.com:durydevelop/raywui.git - https://github.com/durydevelop/raywui.git
 #     |    |
 #     |    |src\
 #     |    |
 #     |    |src-mcu\
 #     |    
-#     |dev-tools <https://github.com/durydevelop/dev-tools.git>
+#     |dev-tools git@gitlab.com:durydevelop/dev-tools.git - https://github.com/durydevelop/dev-tools.git
 
 print-usage() {
     echo "This script will install Dury Develop Framework."
@@ -132,6 +142,12 @@ function write_line_in_file_if_not_exists() {
 
 #################################### entry-point ####################################
 
+# Full path of the current script
+THIS=`readlink -f "${BASH_SOURCE[0]}" 2>/dev/null||echo $0`
+
+# The directory where current script resides
+DIR=`dirname "${THIS}"`
+
 # Parse command line
 POSITIONAL=()
     while [[ $# -gt 0 ]]; do
@@ -165,6 +181,7 @@ install_if_not_exists build-essential
 install_if_not_exists libboost-dev
 install_if_not_exists libopencv-dev
 install_if_not_exists libgl1-mesa-dev
+install_if_not_exists doxygen
 
 ## Qt dependences
 # possible:
@@ -212,12 +229,12 @@ if [[ $CURR_DDEV_ROOT_PATH == "" ]]; then
 	# set default
 	if [[ $DDEV_ROOT_PATH == "" ]]; then
 		# No manual entered root path
-		echo "Seems DDEV-TOOLS are not installed, use $DEFAULT_DDEV_ROOT_PATH as $ENV_DDEV_ROOT_PATH environment?"
+		echo -n "Seems DDEV-TOOLS are not installed, use $DEFAULT_DDEV_ROOT_PATH as $ENV_DDEV_ROOT_PATH environment? "
 		DDEV_ROOT_PATH=$DEFAULT_DDEV_ROOT_PATH
 	else
 		# Manual entered root path
 		DDEV_ROOT_PATH=$(realpath $DDEV_ROOT_PATH)
-		echo "Use $DDEV_ROOT_PATH as $ENV_DDEV_ROOT_PATH environment?"
+		echo -n "Use $DDEV_ROOT_PATH as $ENV_DDEV_ROOT_PATH environment?"
 	fi
 	read -p "(Y/n)" -n 1 -r
 	echo
@@ -280,28 +297,28 @@ dir_create_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu"
 dir_create_if_not_exists "$DDEV_ROOT_PATH/cpp/src-mcu"
 
 ## Clone repositories
-echo "Clone repositories"
+echo "Cloning repositories..."
 
 # Clone dev-tools
-git_clone_if_not_exists $DDEV_TOOLS_PATH https://github.com/durydevelop/dev-tools.git
+git_clone_if_not_exists $DDEV_TOOLS_PATH $REPO_DEV_TOOLS
 
 # Clone helpers_cmake
-git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/helpers_cmake" https://github.com/durydevelop/helpers_cmake.git
+git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/helpers_cmake" $REPO_HEPLERS_CMAKE
 
 # Clone dpplib
-git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dpplib" https://github.com/durydevelop/dpplib.git
+git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dpplib" $REPO_DPPLIB
 
 # Clone dpplibmcu
-git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dpplibmcu" https://github.com/durydevelop/dpplibmcu.git
+git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dpplibmcu" $REPO_DPPLIBMCU
 
 # Clone dwebsocket
-git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dwebsocket" https://github.com/durydevelop/dwebsocket.git
+git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dwebsocket" $REPO_DWEBSOCKET
 
 # Clone raywui
-git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/raywui" https://github.com/durydevelop/raywui.git
+git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/raywui" $REPO_RAYWUI
 
 # Clone Qt Advanced Docking
-git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/Qt-Advanced-Docking-System" https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System.git
+git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/Qt-Advanced-Docking-System" $REPO_QT_ADS
 
 # Update environments
 echo "Update environments..."
