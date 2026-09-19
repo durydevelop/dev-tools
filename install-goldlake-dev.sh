@@ -1,5 +1,7 @@
 #!/bin/bash
 
+
+Version=1.0.1
 ## Use lib.sh as functions library
 # Full path of the current script
 THIS=`readlink -f "${BASH_SOURCE[0]}" 2>/dev/null||echo $0`
