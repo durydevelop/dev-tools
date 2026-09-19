@@ -42,7 +42,7 @@ install_if_not_exists mesa-common-dev
 install_if_not_exists libx11-dev
 install_if_not_exists libxrandr-dev
 install_if_not_exists libxinerama-dev
-if linux
+if [[ "$OSTYPE" == linux* ]]; then
 	install_if_not_exists libxcursor-dev
 fi
 install_if_not_exists libxi-dev

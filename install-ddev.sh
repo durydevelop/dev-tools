@@ -12,28 +12,28 @@ REPO_HEPLERS_CMAKE=git@gitlab.com:durydevelop/cpp/helpers_cmake.git
 REPO_DPPLIB=git@gitlab.com:durydevelop/cpp/lib/dpplib.git
 REPO_DPPLIBMCU=git@gitlab.com:durydevelop/cpp/lib-mcu/dpplibmcu.git
 REPO_DWEBSOCKET=git@gitlab.com:durydevelop/cpp/lib/dwebsocket.git
-REPO_RAYWUI=git@github.com:durydevelop/raywui.git
+REPO_RAYWUI=git@gitlab.com:durydevelop/cpp/lib-mcu/raywui.git
 REPO_QT_ADS=https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System.git
 
 # Result structure:
 # Dev\
 #     |cpp\
-#     |    |helpers_cmake\  <git@gitlab.com:durydevelop/cpp/helpers_cmake.git> <https://github.com/durydevelop/helpers_cmake.git>
+#     |    |helpers_cmake\  <git@gitlab.com:durydevelop/cpp/helpers_cmake.git> mirrored <https://github.com/durydevelop/helpers_cmake.git>
 #     |    |
 #     |    |lib\
-#     |    |    	 |dpplib <git@gitlab.com:durydevelop/cpp/lib/dpplib.git> <https://github.com/durydevelop/dpplib.git>
-#     |    |    	 |dwebsocket <git@gitlab.com:durydevelop/cpp/lib/dwebsocket.git> <https://github.com/durydevelop/dwebsocket.git>
-#     |    |         |Qt-ads <https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System.git>
+#     |    |   	|dpplib <git@gitlab.com:durydevelop/cpp/lib/dpplib.git> mirrored <https://github.com/durydevelop/dpplib.git>
+#     |    |    |dwebsocket <git@gitlab.com:durydevelop/cpp/lib/dwebsocket.git> mirrored <https://github.com/durydevelop/dwebsocket.git>
+#     |    |	|Qt-ads <https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System.git>
 #     |    |
 #     |    |lib-mcu\
-#     |    |         |dpplib-mcu <git@gitlab.com:durydevelop/cpp/lib-mcu/dpplibmcu.git> <https://github.com/durydevelop/dpplibmcu.git>
-#     |    |         |raywui <https://github.com/durydevelop/raywui.git>
+#     |    |    |dpplib-mcu <git@gitlab.com:durydevelop/cpp/lib-mcu/dpplibmcu.git> mirrored <https://github.com/durydevelop/dpplibmcu.git>
+#     |    |    |raywui <git@gitlab.com:durydevelop/cpp/lib-mcu/raywui.git>
 #     |    |
 #     |    |src\
 #     |    |
 #     |    |src-mcu\
 #     |    
-#     |dev-tools <git@gitlab.com:durydevelop/dev-tools.git> <https://github.com/durydevelop/dev-tools.git>
+#     |dev-tools <git@gitlab.com:durydevelop/dev-tools.git> mirrored <https://github.com/durydevelop/dev-tools.git>
 
 print-usage() {
     echo "This script will install Dury Develop Framework."
@@ -331,17 +331,17 @@ git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/helpers_cmake" $REPO_HEPLERS_CMAKE
 
 ## cpp/lib
 # Clone dpplib
-git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dpplib" https://github.com/durydevelop/dpplib.git
+git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dpplib" $REPO_DPPLIB
 # Clone dwebsocket
-git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dwebsocket" https://github.com/durydevelop/dwebsocket.git
+git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/dwebsocket" $REPO_DWEBSOCKET
 # Clone Qt Advanced Docking
 git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib/Qt-Advanced-Docking-System" $REPO_QT_ADS
 
 ## cpp/lib-mcu
 # Clone dpplibmcu
-git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dpplibmcu" https://github.com/durydevelop/dpplibmcu.git
+git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/dpplibmcu" $REPO_DPPLIBMCU
 # Clone raywui
-git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/raywui" https://github.com/durydevelop/raywui.git
+git_clone_if_not_exists "$DDEV_ROOT_PATH/cpp/lib-mcu/raywui" $REPO_RAYWUI
 
 # Update environments
 echo "Update environments..."
