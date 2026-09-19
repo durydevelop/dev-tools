@@ -142,6 +142,7 @@ install_if_not_exists cmake
 install_if_not_exists build-essential
 install_if_not_exists libboost-dev
 install_if_not_exists libopencv-dev
+install_if_not_exists doxygen
 if [[ $(apt-cache search --names-only qt6-base-dev) != "" ]]; then
 	#echo -e "\e[32m$1install qt6-base-dev\e[0m"
 	install_if_not_exists qt6-base-dev

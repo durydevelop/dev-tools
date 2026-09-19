@@ -48,3 +48,5 @@ if [[ "$OSTYPE" == linux* ]]; then
 	install_if_not_exists libxcursor-dev
 fi
 install_if_not_exists libxi-dev
+install_if_not_exists libgbm-dev
+install_if_not_exists doxygen
