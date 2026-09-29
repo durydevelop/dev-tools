@@ -29,7 +29,11 @@ fi
 
 git init
 git remote add origin $1
-touch README.md
+if NOT EXIST README.md (
+	touch README.md
+	git add README.md
+	git commit -m "add README"
+)
 git add .
 git commit -m "Initial Commit"
-git push -u origin master
+git push -u origin main
