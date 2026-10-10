@@ -49,4 +49,5 @@ if [[ "$OSTYPE" == linux* ]]; then
 fi
 install_if_not_exists libxi-dev
 install_if_not_exists libgbm-dev
+install_if_not_exists libsdbus-c++-dev
 install_if_not_exists doxygen
